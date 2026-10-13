@@ -1,6 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
+import EsqueciSenha from "./pages/EsqueciSenha";
 import Dashboard from "./pages/Dashboard";
 
 function RotaProtegida({ children }) {
@@ -14,7 +16,13 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
+
         <Route path="/cadastro" element={<Cadastro />} />
+
+        <Route
+          path="/esqueci-senha"
+          element={<EsqueciSenha />}
+        />
 
         <Route
           path="/dashboard"

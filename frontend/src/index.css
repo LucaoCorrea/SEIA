@@ -430,7 +430,46 @@ a {
   font-weight: 700;
   letter-spacing: 0.5px;
 }
+.forgot-password {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
 
+.forgot-password-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #28633b;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.forgot-password-link:hover {
+  background-color: #edf5eb;
+  color: #1b4d2b;
+  transform: translateX(2px);
+}
+
+.forgot-password-link:focus-visible {
+  outline: 2px solid #438651;
+  outline-offset: 3px;
+}
+
+.forgot-password-link svg:last-child {
+  transition: transform 0.2s ease;
+}
+
+.forgot-password-link:hover svg:last-child {
+  transform: translateX(3px);
+}
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

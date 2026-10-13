@@ -15,6 +15,7 @@ class Auth:
 
         self.router.post("/registro")(self.registro_usuario)
         self.router.post("/login")(self.login)
+        self.router.post("/esqueci-senha")(self.esqueci_senha)
  
     def registro_usuario(self, usuario: Usuario):
         try:
@@ -64,3 +65,24 @@ class Auth:
 
         except Exception:
             raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+
+    def esqueci_senha(self, email: str = Body(...)):
+        if not self.api_key:
+            raise HTTPException(status_code=500, detail="FIREBASE_API_KEY não configurada")
+
+        url = (f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={self.api_key}")
+
+        dados = {
+            "requestType": "PASSWORD_RESET",
+            "email": email
+        }
+
+        try:
+            resposta = requests.post(url, json=dados, timeout=10)
+        except requests.RequestException:
+            raise HTTPException(status_code=503, detail="Não foi possível conectar ao Firebase")
+
+        if resposta.status_code != 200:
+            raise HTTPException(status_code=400, detail="Não foi possível enviar o email de redefinição de senha")
+
+        return {"mensagem": "Email de redefinição de senha enviado com sucesso"}

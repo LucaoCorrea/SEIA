@@ -51,3 +51,28 @@ export function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("email");
 }
+
+export async function esqueciSenha(email) {
+  const resposta = await fetch(
+    `${import.meta.env.VITE_API_URL}/esqueci-senha`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    }
+  );
+
+  const dados = await resposta.json();
+
+  if (!resposta.ok) {
+    throw new Error(
+      typeof dados.detail === "string"
+        ? dados.detail
+        : "Não foi possível enviar o email de redefinição."
+    );
+  }
+
+  return dados;
+}
