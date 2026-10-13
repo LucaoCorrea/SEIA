@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import credentials, initialize_app
 import firebase_admin
 import uvicorn
@@ -13,11 +14,27 @@ class Main:
 
         self.app = FastAPI()
 
+        # Configuração do CORS
+        origens_permitidas = [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+        ]
+
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=origens_permitidas,
+            allow_credentials=False,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+
+        # Inicialização do Firebase
         cred = credentials.Certificate("firebase-key.json")
 
         if not firebase_admin._apps:
             initialize_app(cred)
 
+        # Registro das rotas
         auth_api = Auth()
         self.app.include_router(auth_api.router)
 

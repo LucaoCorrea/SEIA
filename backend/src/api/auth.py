@@ -1,7 +1,7 @@
 import os
 import requests
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from firebase_admin import auth
 from model.usuario import Usuario
@@ -29,7 +29,7 @@ class Auth:
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Não foi possível criar o usuário: {e}")
 
-    def login(self, email: str, password: str):
+    def login(self, email: str = Body(...), password: str = Body(...)):
         if not self.api_key:
             raise HTTPException(status_code=500, detail="FIREBASE_API_KEY não configurada")
 
