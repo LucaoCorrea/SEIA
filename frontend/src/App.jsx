@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import EsqueciSenha from "./pages/EsqueciSenha";
 import Dashboard from "./pages/Dashboard";
+import ScanBip from "./pages/ScanBip";
 
 function RotaProtegida({ children }) {
   const token = localStorage.getItem("token");
@@ -32,7 +33,8 @@ export default function App() {
             </RotaProtegida>
           }
         />
-
+        <Route path="/bip" element={<RotaProtegida><ScanBip /></RotaProtegida>} />
+        
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

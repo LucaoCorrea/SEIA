@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { logout } from "../services/api";
 
@@ -31,21 +32,24 @@ export default function Dashboard() {
         <span className="menu-label">MENU PRINCIPAL</span>
 
         <nav>
-          <a className="menu-item active" href="#inicio">
+          <button className="menu-item active" onClick={() => navigate("/dashboard")}>
             <span>▦</span> Visão geral
-          </a>
-          <a className="menu-item" href="#produtos">
+          </button>
+          <button className="menu-item" onClick={() => navigate("/produtos")}>
             <span>▤</span> Produtos
-          </a>
-          <a className="menu-item" href="#entradas">
+          </button>
+          <button className="menu-item" onClick={() => navigate("/bip")}>
+            <span>▥</span> Bip de produtos
+          </button>
+          <button className="menu-item" onClick={() => navigate("/entradas")}>
             <span>↗</span> Entradas
-          </a>
-          <a className="menu-item" href="#saidas">
+          </button>
+          <button className="menu-item" onClick={() => navigate("/saidas")}>
             <span>↘</span> Saídas
-          </a>
-          <a className="menu-item" href="#relatorios">
+          </button>
+          <button className="menu-item" onClick={() => navigate("/relatorios")}>
             <span>▥</span> Relatórios
-          </a>
+          </button>
         </nav>
 
         <div className="sidebar-bottom">
@@ -76,9 +80,10 @@ export default function Dashboard() {
           <div>
             <span>PAINEL DE CONTROLE</span>
             <h2>Bem-vindo ao SEIA!</h2>
-            <p>
-              Acompanhe a gestão do seu estoque em um só lugar.
-            </p>
+            <p>Acompanhe a gestão do seu estoque em um só lugar.</p>
+            <button className="dashboard-scan-button" onClick={() => navigate("/bip")}>
+              ▥ Ler código de barras
+            </button>
           </div>
           <div className="banner-symbol">✳</div>
         </section>
@@ -106,15 +111,17 @@ export default function Dashboard() {
           <article className="panel" id="produtos">
             <div className="panel-heading">
               <h3>Produtos recentes</h3>
-              <span>Estoque</span>
+              <button className="dashboard-link" onClick={() => navigate("/produtos")}>
+                Ver produtos →
+              </button>
             </div>
             <div className="empty-state">
               <div className="empty-icon">▤</div>
               <strong>Nenhum produto por aqui</strong>
-              <p>
-                Os produtos cadastrados poderão aparecer
-                nesta área quando a API estiver disponível.
-              </p>
+              <p>Os produtos cadastrados aparecerão nesta área.</p>
+              <button className="dashboard-secondary-button" onClick={() => navigate("/bip")}>
+                Consultar por código de barras
+              </button>
             </div>
           </article>
 
@@ -125,10 +132,7 @@ export default function Dashboard() {
             <div className="empty-state">
               <div className="empty-icon">◷</div>
               <strong>Nenhuma movimentação</strong>
-              <p>
-                As entradas e saídas do estoque poderão
-                ser acompanhadas aqui.
-              </p>
+              <p>As entradas e saídas do estoque poderão ser acompanhadas aqui.</p>
             </div>
           </article>
         </section>

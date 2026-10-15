@@ -101,6 +101,94 @@ a {
   font-size: clamp(30px, 3.4vw, 48px);
   line-height: 1.15;
 }
+.dashboard-scan-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 12px 18px;
+  border: 1px solid #ffffff55;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #176b40;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.dashboard-scan-button:hover {
+  background: #e9f5ed;
+  transform: translateY(-1px);
+}
+
+.dashboard-scan-button:focus-visible,
+.dashboard-link:focus-visible,
+.dashboard-secondary-button:focus-visible {
+  outline: 2px solid #438651;
+  outline-offset: 3px;
+}
+
+.dashboard-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0 8px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #176b40;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.dashboard-link:hover {
+  background: #edf5eb;
+  color: #1b4d2b;
+}
+
+.dashboard-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 16px;
+  border: 1px solid #d5e4d8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #176b40;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.dashboard-secondary-button:hover {
+  background: #f0f7f1;
+  border-color: #176b40;
+  transform: translateY(-1px);
+}
+
+.dashboard-scan-button:disabled,
+.dashboard-link:disabled,
+.dashboard-secondary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.menu-item {
+  font-family: inherit;
+  cursor: pointer;
+}
 
 .brand-message p {
   color: #d3e0d5;
