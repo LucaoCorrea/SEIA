@@ -1,46 +1,34 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from firebase_admin import credentials, initialize_app
-import firebase_admin
 import uvicorn
 
 from api.auth import Auth
+from backend.src.model.produto import Produto
+from backend.src.plugins.database import Base, engine
+from backend.src.api.produtos import RotasProduto
 
 
 class Main:
     def __init__(self):
         load_dotenv()
 
-        self.app = FastAPI()
+        self.app = FastAPI(title="SEIA API")
 
-        # Configuração do CORS
-        origens_permitidas = [
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-        ]
+        origens_permitidas = ["http://localhost:5173", "http://127.0.0.1:5173",]
 
-        self.app.add_middleware(
-            CORSMiddleware,
-            allow_origins=origens_permitidas,
-            allow_credentials=False,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
+        self.app.add_middleware(CORSMiddleware, allow_origins=origens_permitidas, allow_credentials=False, allow_methods=["*"], allow_headers=["*"],)
 
-        # Inicialização do Firebase
-        cred = credentials.Certificate("firebase-key.json")
+        Base.metadata.create_all(bind=engine)
 
-        if not firebase_admin._apps:
-            initialize_app(cred)
-
-        # Registro das rotas
         auth_api = Auth()
+        produto_api = RotasProduto()
+
         self.app.include_router(auth_api.router)
+        self.app.include_router(produto_api.router)
 
     def run(self):
         uvicorn.run(self.app, host="127.0.0.1", port=8000)
-
 
 main = Main()
 app = main.app
