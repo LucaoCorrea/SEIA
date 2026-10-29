@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Login from "./pages/Login";
@@ -13,17 +14,41 @@ function RotaProtegida({ children }) {
   return token ? children : <Navigate to="/" replace />;
 }
 
+function RotaPublica({ children }) {
+  const token = localStorage.getItem("token");
+
+  return token ? <Navigate to="/dashboard" replace /> : children;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
-
-        <Route path="/cadastro" element={<Cadastro />} />
+        <Route
+          path="/"
+          element={
+            <RotaPublica>
+              <Login />
+            </RotaPublica>
+          }
+        />
 
         <Route
           path="/esqueci-senha"
-          element={<EsqueciSenha />}
+          element={
+            <RotaPublica>
+              <EsqueciSenha />
+            </RotaPublica>
+          }
+        />
+
+        <Route
+          path="/cadastro"
+          element={
+            <RotaProtegida>
+              <Cadastro />
+            </RotaProtegida>
+          }
         />
 
         <Route
@@ -34,10 +59,25 @@ export default function App() {
             </RotaProtegida>
           }
         />
-        <Route path="/bip" element={<RotaProtegida><ScanBip /></RotaProtegida>} />
-        
-        <Route path="/produtos" element={<Produtos />} />
-        
+
+        <Route
+          path="/bip"
+          element={
+            <RotaProtegida>
+              <ScanBip />
+            </RotaProtegida>
+          }
+        />
+
+        <Route
+          path="/produtos"
+          element={
+            <RotaProtegida>
+              <Produtos />
+            </RotaProtegida>
+          }
+        />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

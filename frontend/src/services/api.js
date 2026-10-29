@@ -1,4 +1,19 @@
-const API_URL = import.meta.env.VITE_API_URL;
+
+const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
+
+async function tratarResposta(resposta, mensagemErro) {
+  const dados = await resposta.json().catch(() => ({}));
+
+  if (!resposta.ok) {
+    throw new Error(
+      typeof dados.detail === "string"
+        ? dados.detail
+        : mensagemErro
+    );
+  }
+
+  return dados;
+}
 
 export async function login(email, password) {
   const resposta = await fetch(`${API_URL}/login`, {
@@ -9,15 +24,10 @@ export async function login(email, password) {
     body: JSON.stringify({ email, password }),
   });
 
-  const dados = await resposta.json();
-
-  if (!resposta.ok) {
-    throw new Error(
-      typeof dados.detail === "string"
-        ? dados.detail
-        : "Não foi possível realizar o login."
-    );
-  }
+  const dados = await tratarResposta(
+    resposta,
+    "Não foi possível realizar o login."
+  );
 
   localStorage.setItem("token", dados.token);
   localStorage.setItem("email", dados.email);
@@ -34,17 +44,10 @@ export async function cadastrar(email, password) {
     body: JSON.stringify({ email, password }),
   });
 
-  const dados = await resposta.json();
-
-  if (!resposta.ok) {
-    throw new Error(
-      typeof dados.detail === "string"
-        ? dados.detail
-        : "Não foi possível realizar o cadastro."
-    );
-  }
-
-  return dados;
+  return await tratarResposta(
+    resposta,
+    "Não foi possível realizar o cadastro."
+  );
 }
 
 export function logout() {
@@ -53,26 +56,16 @@ export function logout() {
 }
 
 export async function esqueciSenha(email) {
-  const resposta = await fetch(
-    `${import.meta.env.VITE_API_URL}/esqueci-senha`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email }),
-    }
+  const resposta = await fetch(`${API_URL}/esqueci-senha`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  return await tratarResposta(
+    resposta,
+    "Não foi possível enviar o email de redefinição."
   );
-
-  const dados = await resposta.json();
-
-  if (!resposta.ok) {
-    throw new Error(
-      typeof dados.detail === "string"
-        ? dados.detail
-        : "Não foi possível enviar o email de redefinição."
-    );
-  }
-
-  return dados;
 }

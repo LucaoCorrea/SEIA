@@ -1,21 +1,23 @@
+from typing import Optional
 
-from sqlalchemy import Boolean, Column, Float, Integer, String
-
-from backend.src.plugins.database import Base
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class Produto(Base):
-    __tablename__ = "produtos"
+class Produto(BaseModel):
+    nome: str = Field(..., max_length=150)
+    preco: float
+    quantidade: float = 0
+    descricao: Optional[str] = Field(default=None, max_length=1000)
+    imagem: Optional[str] = None
+    codigo_barras: Optional[str] = Field(default=None, max_length=100)
+    tipo_classificacao: Optional[str] = Field(default=None, max_length=100)
+    unidade_medida: str = Field(default="un", max_length=30)
+    estoque_minimo: float = 0
+    custo: float = 0
+    ativo: bool = True
 
-    id = Column(Integer, primary_key=True, index=True)
-    nome = Column(String(150), nullable=False)
-    preco = Column(Float, nullable=False)
-    quantidade = Column(Float, nullable=False, default=0)
-    descricao = Column(String(1000), nullable=True)
-    imagem = Column(String, nullable=True)
-    codigo_barras = Column(String(100), nullable=True, unique=True)
-    tipo_classificacao = Column(String(100), nullable=True)
-    unidade_medida = Column(String(30), nullable=False, default="un")
-    estoque_minimo = Column(Float, nullable=False, default=0)
-    custo = Column(Float, nullable=False, default=0)
-    ativo = Column(Boolean, nullable=False, default=True)
+
+class ProdutoResponse(Produto):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)

@@ -4,9 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from api.auth import Auth
-from backend.src.model.produto import Produto
-from backend.src.plugins.database import Base, engine
-from backend.src.api.produtos import RotasProduto
+from schemas.produto import Produto 
+from plugins.database import Base, engine
+from api.produtos import RotasProduto
 
 
 class Main:

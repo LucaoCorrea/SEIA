@@ -1,25 +1,21 @@
-
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../services/api";
+import Sidebar from "../components/Sidebar";
 import "./ScanBip.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 export default function ScanBip() {
   const navigate = useNavigate();
   const inputRef = useRef(null);
   const fileRef = useRef(null);
+
   const [codigo, setCodigo] = useState("");
   const [resultado, setResultado] = useState(null);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
-  const email = localStorage.getItem("email") || "Usuário";
 
-  function sair() {
-    logout();
-    navigate("/", { replace: true });
-  }
+  const email = localStorage.getItem("email") || "Usuário";
 
   async function consultarCodigo(valor = codigo) {
     const codigoLimpo = valor.trim();
@@ -36,9 +32,14 @@ export default function ScanBip() {
     setCarregando(true);
 
     try {
-      const resposta = await fetch(`${API_URL}/api/produtos/codigo-barras/${encodeURIComponent(codigoLimpo)}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      const resposta = await fetch(
+        `${API_URL}/api/produtos/codigo-barras/${encodeURIComponent(codigoLimpo)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        }
+      );
 
       if (resposta.status === 404) {
         setResultado({ codigo_barras: codigoLimpo, encontrado: false });
@@ -74,7 +75,9 @@ export default function ScanBip() {
 
       const resposta = await fetch(`${API_URL}/api/scann-bip/escanear`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
         body: formulario
       });
 
@@ -103,45 +106,7 @@ export default function ScanBip() {
 
   return (
     <div className="dashboard scan-page">
-      <aside className="sidebar">
-        <div className="sidebar-brand">
-          <div className="brand-logo small">S</div>
-          <div>
-            <strong>SEIA</strong>
-            <small>Gestão Agro</small>
-          </div>
-        </div>
-
-        <span className="menu-label">MENU PRINCIPAL</span>
-
-        <nav>
-          <button className="menu-item" onClick={() => navigate("/dashboard")}>
-            <span>▦</span> Visão geral
-          </button>
-          <button className="menu-item" onClick={() => navigate("/produtos")}>
-            <span>▤</span> Produtos
-          </button>
-          <button className="menu-item active" onClick={() => navigate("/bip")}>
-            <span>▥</span> Bip de produtos
-          </button>
-          <button className="menu-item" onClick={() => navigate("/entradas")}>
-            <span>↗</span> Entradas
-          </button>
-          <button className="menu-item" onClick={() => navigate("/saidas")}>
-            <span>↘</span> Saídas
-          </button>
-          <button className="menu-item" onClick={() => navigate("/relatorios")}>
-            <span>▤</span> Relatórios
-          </button>
-        </nav>
-
-        <div className="sidebar-bottom">
-          <span className="menu-label">CONTA</span>
-          <button className="menu-item logout" onClick={sair}>
-            <span>⇥</span> Sair do sistema
-          </button>
-        </div>
-      </aside>
+      <Sidebar />
 
       <main className="dashboard-main scan-main">
         <header className="topbar">
@@ -149,6 +114,7 @@ export default function ScanBip() {
             <span className="eyebrow">GESTÃO INTELIGENTE DE ESTOQUE</span>
             <h1>Leitor de produtos</h1>
           </div>
+
           <div className="profile">
             <div className="avatar">U</div>
             <div>
@@ -177,28 +143,23 @@ export default function ScanBip() {
             <div className="scanner-illustration">
               <div className="scanner-icon">▥</div>
               <div className="scanner-lines">
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
+                {Array.from({ length: 12 }).map((_, index) => (
+                  <span key={index} />
+                ))}
               </div>
               <p>AGUARDANDO LEITURA</p>
               <small>Utilize um leitor USB ou digite o código abaixo.</small>
             </div>
 
-            <form className="scan-form" onSubmit={(evento) => {
-              evento.preventDefault();
-              consultarCodigo();
-            }}>
+            <form
+              className="scan-form"
+              onSubmit={(evento) => {
+                evento.preventDefault();
+                consultarCodigo();
+              }}
+            >
               <label htmlFor="codigo-barras">Código de barras</label>
+
               <div className="scan-input-group">
                 <span>▥</span>
                 <input
@@ -210,6 +171,7 @@ export default function ScanBip() {
                   autoComplete="off"
                   autoFocus
                 />
+
                 <button type="submit" disabled={carregando}>
                   {carregando ? "Consultando..." : "Consultar"}
                 </button>
@@ -218,9 +180,14 @@ export default function ScanBip() {
 
             <div className="scan-divider"><span>OU</span></div>
 
-            <button className="upload-button" onClick={() => fileRef.current?.click()} disabled={carregando}>
+            <button
+              className="upload-button"
+              onClick={() => fileRef.current?.click()}
+              disabled={carregando}
+            >
               <span>↑</span> Enviar imagem do código de barras
             </button>
+
             <input
               ref={fileRef}
               className="hidden-file"
@@ -261,11 +228,16 @@ export default function ScanBip() {
                 <span className="result-label">PRODUTO NÃO CADASTRADO</span>
                 <h2>Código não encontrado</h2>
                 <p>Este código ainda não está na base local do SEIA.</p>
+
                 <div className="product-code">
                   <small>CÓDIGO LIDO</small>
                   <strong>{resultado.codigo_barras}</strong>
                 </div>
-                <button className="register-button" onClick={() => navigate(`/produtos/novo?codigo_barras=${encodeURIComponent(resultado.codigo_barras)}`)}>
+
+                <button
+                  className="register-button"
+                  onClick={() => navigate(`/produtos/novo?codigo_barras=${encodeURIComponent(resultado.codigo_barras)}`)}
+                >
                   + Cadastrar produto
                 </button>
               </div>
@@ -278,18 +250,41 @@ export default function ScanBip() {
                 ) : (
                   <div className="result-icon">▤</div>
                 )}
+
                 <span className="result-label">PRODUTO IDENTIFICADO</span>
                 <h2>{resultado.nome}</h2>
+
                 <div className="product-code">
                   <small>CÓDIGO DE BARRAS</small>
                   <strong>{resultado.codigo_barras || codigo}</strong>
                 </div>
+
                 <div className="product-details">
-                  <div><small>Preço</small><strong>{Number(resultado.preco || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></div>
-                  <div><small>Estoque atual</small><strong>{resultado.quantidade ?? 0} {resultado.unidade_medida || "un"}</strong></div>
-                  <div><small>Categoria</small><strong>{resultado.tipo_classificacao || "Não informada"}</strong></div>
+                  <div>
+                    <small>Preço</small>
+                    <strong>
+                      {Number(resultado.preco || 0).toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL"
+                      })}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <small>Estoque atual</small>
+                    <strong>{resultado.quantidade ?? 0} {resultado.unidade_medida || "un"}</strong>
+                  </div>
+
+                  <div>
+                    <small>Categoria</small>
+                    <strong>{resultado.tipo_classificacao || "Não informada"}</strong>
+                  </div>
                 </div>
-                <button className="register-button" onClick={() => navigate(`/produtos/${resultado.id}`)}>
+
+                <button
+                  className="register-button"
+                  onClick={() => navigate(`/produtos/${resultado.id}`)}
+                >
                   Ver produto
                 </button>
               </div>
@@ -297,7 +292,9 @@ export default function ScanBip() {
           </article>
         </section>
 
-        <footer className="footer">SEIA · Sistema de Estoque para Agro</footer>
+        <footer className="footer">
+          SEIA · Sistema de Estoque para Agro
+        </footer>
       </main>
     </div>
   );
