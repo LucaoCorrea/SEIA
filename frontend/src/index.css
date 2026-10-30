@@ -26,6 +26,206 @@ input {
   font: inherit;
 }
 
+textarea {
+  font: inherit;
+}
+
+.auth-company-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.auth-company-fields > div {
+  min-width: 0;
+}
+
+.dashboard-company-name {
+  margin: 6px 0 0;
+  color: #748078;
+  font-size: 13px;
+}
+
+.dashboard-feed-section {
+  margin-top: 30px;
+}
+
+.dashboard-feed-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(270px, 0.8fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.dashboard-feed-panel,
+.dashboard-notice-editor {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #e9eeea;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgb(28 65 42 / 3%);
+}
+
+.dashboard-feed-count {
+  color: #8b978f;
+  font-size: 11px;
+}
+
+.dashboard-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-feed-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #edf1ed;
+}
+
+.dashboard-feed-item:last-child {
+  border-bottom: 0;
+}
+
+.dashboard-feed-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border-radius: 10px;
+  background: #e8f5ec;
+  color: #197447;
+  font-weight: 800;
+}
+
+.dashboard-feed-icon.aviso {
+  background: #fff5df;
+  color: #a96a12;
+}
+
+.dashboard-feed-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.dashboard-feed-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 5px 12px;
+}
+
+.dashboard-feed-title-row strong {
+  color: #203b2b;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.dashboard-feed-title-row time,
+.dashboard-feed-content small {
+  color: #89958d;
+  font-size: 10px;
+}
+
+.dashboard-feed-content p {
+  margin: 5px 0;
+  color: #68766d;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-feed-actions,
+.dashboard-notice-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-feed-actions button {
+  padding: 5px 7px;
+  border: 0;
+  border-radius: 5px;
+  background: #f3f6f3;
+  color: #315c43;
+  font: inherit;
+  font-size: 10px;
+}
+
+.dashboard-feed-actions button:last-child {
+  color: #a23c2b;
+}
+
+.dashboard-notice-editor form {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.dashboard-notice-editor label {
+  color: #506157;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.dashboard-notice-editor input,
+.dashboard-notice-editor textarea {
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid #dfe7e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #203b2b;
+  font-size: 12px;
+}
+
+.dashboard-notice-editor textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.dashboard-notice-actions {
+  flex-wrap: wrap;
+}
+
+.dashboard-notice-actions .dashboard-scan-button {
+  margin-top: 6px;
+}
+
+.dashboard-feed-success {
+  color: #197447;
+  font-size: 12px;
+}
+
+@media (max-width: 850px) {
+  .dashboard-feed-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .auth-company-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-feed-panel,
+  .dashboard-notice-editor {
+    padding: 16px 13px;
+  }
+
+  .dashboard-feed-item {
+    flex-wrap: wrap;
+  }
+}
+
 button,
 a {
   -webkit-tap-highlight-color: transparent;

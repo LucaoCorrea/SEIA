@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import { API_URL, requisicaoAPI } from "../services/api";
 import "./Produto.css";
-
-const API_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
 const produtoInicial = {
   nome: "",
@@ -19,25 +18,6 @@ const produtoInicial = {
   fornecedor_id: "",
   ativo: true
 };
-
-async function requisicaoAPI(url, options = {}) {
-  const resposta = await fetch(url, {
-    ...options,
-    headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      ...options.headers
-    }
-  });
-
-  if (!resposta.ok) {
-    const erro = await resposta.json().catch(() => null);
-    throw new Error(erro?.detail || `Erro na requisição (${resposta.status}).`);
-  }
-
-  if (resposta.status === 204) return null;
-
-  return resposta.json();
-}
 
 function formatarMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -70,15 +50,13 @@ export default function Produtos() {
   const [sucesso, setSucesso] = useState("");
 
   const carregarProdutos = useCallback(async () => {
-    setCarregando(true);
-    setErro("");
-
     try {
       const dados = await requisicaoAPI(`${API_URL}/listar-produtos`);
       const lista = Array.isArray(dados) ? dados : dados?.produtos || [];
 
       setProdutos(lista);
       setProdutosFiltrados(lista);
+      setErro("");
     } catch (error) {
       setErro(error.message || "Não foi possível carregar os produtos.");
     } finally {
@@ -86,41 +64,76 @@ export default function Produtos() {
     }
   }, []);
 
-  const carregarFornecedores = useCallback(async () => {
-    setCarregandoFornecedores(true);
-
-    try {
-      const dados = await requisicaoAPI(`${API_URL}/listar-fornecedores`);
-      setFornecedores(Array.isArray(dados) ? dados : []);
-    } catch (error) {
-      setErro(error.message || "Não foi possível carregar os fornecedores.");
-    } finally {
-      setCarregandoFornecedores(false);
+  useEffect(() => {
+    let ativo = true;
+    async function carregarProdutosIniciais() {
+      try {
+        const dados = await requisicaoAPI(`${API_URL}/listar-produtos`);
+        if (!ativo) return;
+        const lista = Array.isArray(dados) ? dados : dados?.produtos || [];
+        setProdutos(lista);
+        setProdutosFiltrados(lista);
+        setErro("");
+      } catch (error) {
+        if (ativo) setErro(error.message || "Não foi possível carregar os produtos.");
+      } finally {
+        if (ativo) setCarregando(false);
+      }
     }
+
+    carregarProdutosIniciais();
+    return () => {
+      ativo = false;
+    };
   }, []);
 
   useEffect(() => {
-    carregarProdutos();
-  }, [carregarProdutos]);
-
-  useEffect(() => {
-    carregarFornecedores();
-  }, [carregarFornecedores]);
-
-  useEffect(() => {
-    const codigoBarras = location.state?.codigo_barras;
-    const id = location.state?.produtoId;
-
-    if (codigoBarras) {
-      setFormulario((atual) => ({ ...atual, codigo_barras: codigoBarras }));
+    let ativo = true;
+    async function carregarFornecedoresIniciais() {
+      try {
+        const dados = await requisicaoAPI(`${API_URL}/listar-fornecedores`);
+        if (!ativo) return;
+        setFornecedores(Array.isArray(dados) ? dados : []);
+        setErro("");
+      } catch (error) {
+        if (ativo) setErro(error.message || "Não foi possível carregar os fornecedores.");
+      } finally {
+        if (ativo) setCarregandoFornecedores(false);
+      }
     }
 
-    if (id) {
-      setProdutoId(String(id));
-      requisicaoAPI(`${API_URL}/buscar/${encodeURIComponent(id)}`)
-        .then(setProdutoSelecionado)
-        .catch((error) => setErro(error.message || "Não foi possível consultar o produto."));
+    carregarFornecedoresIniciais();
+    return () => {
+      ativo = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let ativo = true;
+    async function aplicarEstadoDaNavegacao() {
+      await Promise.resolve();
+      if (!ativo) return;
+      const codigoBarras = location.state?.codigo_barras;
+      const id = location.state?.produtoId;
+
+      if (codigoBarras) {
+        setFormulario((atual) => ({ ...atual, codigo_barras: codigoBarras }));
+      }
+
+      if (id) {
+        setProdutoId(String(id));
+        try {
+          const produto = await requisicaoAPI(`${API_URL}/buscar/${encodeURIComponent(id)}`);
+          if (ativo) setProdutoSelecionado(produto);
+        } catch (error) {
+          if (ativo) setErro(error.message || "Não foi possível consultar o produto.");
+        }
+      }
     }
+    aplicarEstadoDaNavegacao();
+    return () => {
+      ativo = false;
+    };
   }, [location.state]);
 
   const estatisticas = useMemo(() => ({
@@ -319,7 +332,10 @@ export default function Produtos() {
           <button
             className="produto-btn produto-btn-secondary"
             type="button"
-            onClick={carregarProdutos}
+            onClick={() => {
+              setCarregando(true);
+              carregarProdutos();
+            }}
             disabled={carregando}
           >
             <span className="produto-btn-icon">↻</span>
@@ -446,7 +462,9 @@ export default function Produtos() {
 
               <div className="produto-form-row">
                 <div className="produto-form-group">
-                  <label htmlFor="quantidade">Quantidade inicial *</label>
+                  <label htmlFor="quantidade">
+                    {produtoEmEdicao === null ? "Quantidade inicial *" : "Estoque atual"}
+                  </label>
                   <input
                     id="quantidade"
                     name="quantidade"
@@ -455,8 +473,12 @@ export default function Produtos() {
                     step="0.001"
                     value={formulario.quantidade}
                     onChange={atualizarCampo}
-                    required
+                    required={produtoEmEdicao === null}
+                    disabled={produtoEmEdicao !== null}
                   />
+                  {produtoEmEdicao !== null && (
+                    <small>Altere o estoque pela página de movimentações para manter o histórico.</small>
+                  )}
                 </div>
 
                 <div className="produto-form-group">

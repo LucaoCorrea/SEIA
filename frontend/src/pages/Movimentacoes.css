@@ -1,0 +1,216 @@
+.movimentacoes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.movimentacao-form-panel,
+.movimentacao-history-panel {
+  padding: 24px;
+}
+
+.movimentacao-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 16px;
+}
+
+.movimentacao-form select,
+.empresa-form select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #dfe7e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #203b2b;
+  font: inherit;
+}
+
+.movimentacao-form > button {
+  justify-self: start;
+}
+
+.movimentacao-help {
+  margin: 0;
+  color: #748078;
+  font-size: 12px;
+}
+
+.empresa-form {
+  max-width: 760px;
+}
+
+.admin-empresas-page {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-company-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 16px;
+}
+
+.admin-company-form input {
+  width: 100%;
+}
+
+.admin-company-divider {
+  grid-column: 1 / -1;
+  padding-top: 6px;
+  color: #315c43;
+  font-size: 13px;
+}
+
+.admin-company-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-company-actions .produto-btn {
+  padding: 8px 12px;
+}
+
+.admin-company-delete {
+  color: #a23c2b;
+}
+
+.admin-edit-overlay {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(17 35 24 / 48%);
+}
+
+.admin-edit-dialog {
+  width: min(100%, 560px);
+  padding: 24px;
+}
+
+.empresa-form input {
+  width: 100%;
+}
+
+.empresa-form input:disabled {
+  background: #f5f7f6;
+  color: #748078;
+}
+
+.empresa-convite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  border: 1px solid #dfece2;
+  border-radius: 10px;
+  background: #f5faf6;
+  color: #64736a;
+  font-size: 12px;
+}
+
+.empresa-convite strong {
+  color: #197447;
+  font-size: 16px;
+  letter-spacing: 0.6px;
+  overflow-wrap: anywhere;
+}
+
+.empresa-convite-note {
+  margin: 0 0 18px;
+  color: #748078;
+  font-size: 12px;
+}
+
+.empresa-delete-button {
+  margin-top: 20px;
+  border-color: #f2d3cb;
+  background: #fff;
+  color: #a23c2b;
+}
+
+.movimentacao-table-wrap {
+  overflow-x: auto;
+}
+
+.movimentacao-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+
+.movimentacao-table th,
+.movimentacao-table td {
+  padding: 13px 10px;
+  border-bottom: 1px solid #edf1ed;
+  vertical-align: top;
+}
+
+.movimentacao-table th {
+  color: #77837b;
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.movimentacao-table td {
+  color: #526057;
+}
+
+.movimentacao-table td strong {
+  color: #203b2b;
+}
+
+.movimentacao-badge {
+  display: inline-flex;
+  padding: 5px 8px;
+  border-radius: 20px;
+  background: #e8f5ec;
+  color: #197447;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.movimentacao-badge.saida {
+  background: #fff0ec;
+  color: #bb4c32;
+}
+
+.movimentacao-badge.ajuste {
+  background: #fff5df;
+  color: #a96a12;
+}
+
+.movimentacao-saldo {
+  display: block;
+  margin-top: 4px;
+  color: #859088;
+}
+
+@media (max-width: 760px) {
+  .movimentacao-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-company-form {
+    grid-template-columns: 1fr;
+  }
+
+  .movimentacao-form-panel,
+  .movimentacao-history-panel {
+    padding: 18px 14px;
+  }
+}

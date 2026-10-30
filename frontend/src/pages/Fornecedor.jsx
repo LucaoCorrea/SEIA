@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
+import { API_URL, requisicaoAPI } from "../services/api";
 import "./Produto.css";
 import "./Fornecedor.css";
-
-const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 const fornecedorInicial = {
 	nome: "",
@@ -11,25 +10,6 @@ const fornecedorInicial = {
 	telefone: "",
 	cnpj: ""
 };
-
-async function requisicaoAPI(url, options = {}) {
-	const resposta = await fetch(url, {
-		...options,
-		headers: {
-			...(options.body ? { "Content-Type": "application/json" } : {}),
-			...options.headers
-		}
-	});
-
-	if (!resposta.ok) {
-		const erro = await resposta.json().catch(() => null);
-		throw new Error(erro?.detail || `Erro na requisição (${resposta.status}).`);
-	}
-
-	if (resposta.status === 204) return null;
-
-	return resposta.json();
-}
 
 export default function Fornecedor() {
 	const [fornecedores, setFornecedores] = useState([]);
@@ -42,12 +22,10 @@ export default function Fornecedor() {
 	const [sucesso, setSucesso] = useState("");
 
 	const carregarFornecedores = useCallback(async () => {
-		setCarregando(true);
-		setErro("");
-
 		try {
 			const dados = await requisicaoAPI(`${API_URL}/listar-fornecedores`);
 			setFornecedores(Array.isArray(dados) ? dados : []);
+			setErro("");
 		} catch (error) {
 			setErro(error.message || "Não foi possível carregar os fornecedores.");
 		} finally {
@@ -56,8 +34,25 @@ export default function Fornecedor() {
 	}, []);
 
 	useEffect(() => {
-		carregarFornecedores();
-	}, [carregarFornecedores]);
+		let ativo = true;
+		async function carregarListaInicial() {
+			try {
+				const dados = await requisicaoAPI(`${API_URL}/listar-fornecedores`);
+				if (!ativo) return;
+				setFornecedores(Array.isArray(dados) ? dados : []);
+				setErro("");
+			} catch (error) {
+				if (ativo) setErro(error.message || "Não foi possível carregar os fornecedores.");
+			} finally {
+				if (ativo) setCarregando(false);
+			}
+		}
+
+		carregarListaInicial();
+		return () => {
+			ativo = false;
+		};
+	}, []);
 
 	function atualizarCampo(evento) {
 		const { name, value } = evento.target;
@@ -156,7 +151,10 @@ export default function Fornecedor() {
 					<button
 						className="produto-btn produto-btn-secondary"
 						type="button"
-						onClick={carregarFornecedores}
+						onClick={() => {
+							setCarregando(true);
+							carregarFornecedores();
+						}}
 						disabled={carregando}
 					>
 						<span className="produto-btn-icon">↻</span>

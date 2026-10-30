@@ -1,9 +1,8 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import { API_URL, requisicaoAPI } from "../services/api";
 import "./ScanBip.css";
-
-const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 export default function ScanBip() {
   const navigate = useNavigate();
@@ -16,6 +15,7 @@ export default function ScanBip() {
   const [erro, setErro] = useState("");
 
   const email = localStorage.getItem("email") || "Usuário";
+  const nome = localStorage.getItem("nome") || "Usuário";
 
   async function consultarCodigo(valor = codigo) {
     const codigoLimpo = valor.trim();
@@ -32,12 +32,7 @@ export default function ScanBip() {
     setCarregando(true);
 
     try {
-      const resposta = await fetch(`${API_URL}/listar-produtos`);
-      const produtos = await resposta.json().catch(() => []);
-
-      if (!resposta.ok) {
-        throw new Error("Não foi possível consultar o produto.");
-      }
+      const produtos = await requisicaoAPI(`${API_URL}/listar-produtos`);
 
       const produto = (Array.isArray(produtos) ? produtos : []).find(
         (item) => String(item.codigo_barras || "").trim() === codigoLimpo
@@ -69,16 +64,10 @@ export default function ScanBip() {
       const formulario = new FormData();
       formulario.append("file", arquivo);
 
-      const resposta = await fetch(`${API_URL}/bip-barcode`, {
+      const dados = await requisicaoAPI(`${API_URL}/bip-barcode`, {
         method: "POST",
         body: formulario
       });
-
-      const dados = await resposta.json().catch(() => ({}));
-
-      if (!resposta.ok) {
-        throw new Error(dados.detail || "Não foi possível processar a imagem.");
-      }
 
       const codigoLido = dados.codigo_barras;
 
@@ -109,9 +98,9 @@ export default function ScanBip() {
           </div>
 
           <div className="profile">
-            <div className="avatar">U</div>
+            <div className="avatar">{nome.charAt(0).toUpperCase()}</div>
             <div>
-              <strong>Usuário</strong>
+              <strong>{nome}</strong>
               <small>{email}</small>
             </div>
           </div>

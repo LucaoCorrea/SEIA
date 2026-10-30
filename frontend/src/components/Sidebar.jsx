@@ -12,13 +12,13 @@ export default function Sidebar() {
     navigate("/", { replace: true });
   }
 
+  const adminSeia = localStorage.getItem("role") === "admin_seia";
   const menus = [
     { caminho: "/dashboard", nome: "Visão geral", icone: "▦" },
     { caminho: "/produtos", nome: "Produtos", icone: "▤" },
     { caminho: "/fornecedores", nome: "Fornecedores", icone: "♧" },
     { caminho: "/bip", nome: "Bip de produtos", icone: "▥" },
-    { caminho: "/entradas", nome: "Entradas", icone: "↗" },
-    { caminho: "/saidas", nome: "Saídas", icone: "↘" },
+    { caminho: "/movimentacoes", nome: "Movimentações", icone: "↔" },
     { caminho: "/relatorios", nome: "Relatórios", icone: "▥" }
   ];
 
@@ -35,6 +35,15 @@ export default function Sidebar() {
       <span className="menu-label">MENU PRINCIPAL</span>
 
       <nav>
+        {adminSeia && (
+          <button
+            className={`menu-item ${paginaAtual === "/admin/empresas" ? "active" : ""}`}
+            onClick={() => navigate("/admin/empresas")}
+          >
+            <span>▦</span>
+            Empresas SEIA
+          </button>
+        )}
         {menus.map((item) => (
           <button
             key={item.caminho}
@@ -49,6 +58,10 @@ export default function Sidebar() {
 
       <div className="sidebar-bottom">
         <span className="menu-label">CONTA</span>
+        <button className={`menu-item ${paginaAtual === "/empresa" ? "active" : ""}`} onClick={() => navigate("/empresa")}>
+          <span>⌂</span>
+          Empresa
+        </button>
         <button className="menu-item logout" onClick={sair}>
           <span>⇥</span>
           Sair do sistema

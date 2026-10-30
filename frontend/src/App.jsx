@@ -1,105 +1,61 @@
-
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Login from "./pages/Login";
-import Cadastro from "./pages/Cadastro";
 import EsqueciSenha from "./pages/EsqueciSenha";
 import Dashboard from "./pages/Dashboard";
 import ScanBip from "./pages/ScanBip";
 import Produtos from "./pages/Produtos";
 import Fornecedor from "./pages/Fornecedor";
+import Movimentacoes from "./pages/Movimentacoes";
+import Empresa from "./pages/Empresa";
+import AdminEmpresas from "./pages/AdminEmpresas";
 
 function RotaProtegida({ children }) {
   const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
-  return token ? children : <Navigate to="/" replace />;
+  if (!token) return <Navigate to="/login" replace />;
+  if (role === "admin_seia" && !localStorage.getItem("empresa_id")) {
+    return <Navigate to="/admin/empresas" replace />;
+  }
+  return children;
 }
 
 function RotaPublica({ children }) {
   const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
-  return token ? <Navigate to="/dashboard" replace /> : children;
+  return token
+    ? <Navigate to={role === "admin_seia" ? "/admin/empresas" : "/dashboard"} replace />
+    : children;
+}
+
+function RotaAdminSeia({ children }) {
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
+  if (!token) return <Navigate to="/login" replace />;
+  return role === "admin_seia" ? children : <Navigate to="/dashboard" replace />;
 }
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<RotaPublica><Login /></RotaPublica>} />
+        <Route path="/esqueci-senha" element={<RotaPublica><EsqueciSenha /></RotaPublica>} />
         <Route
-          path="/"
-          element={
-            <RotaPublica>
-              <Login />
-            </RotaPublica>
-          }
+          path="/admin/empresas"
+          element={<RotaAdminSeia><AdminEmpresas /></RotaAdminSeia>}
         />
-
-        <Route
-          path="/login"
-          element={
-            <RotaPublica>
-              <Login />
-            </RotaPublica>
-          }
-        />
-
-        <Route
-          path="/registro"
-          element={
-            <RotaPublica>
-              <Cadastro />
-            </RotaPublica>
-          }
-        />
-
-        <Route
-          path="/esqueci-senha"
-          element={
-            <RotaPublica>
-              <EsqueciSenha />
-            </RotaPublica>
-          }
-        />
-
-        <Route path="/cadastro" element={<Navigate to="/registro" replace />} />
-
-        <Route
-          path="/dashboard"
-          element={
-            <RotaProtegida>
-              <Dashboard />
-            </RotaProtegida>
-          }
-        />
-
-        <Route
-          path="/bip"
-          element={
-            <RotaProtegida>
-              <ScanBip />
-            </RotaProtegida>
-          }
-        />
-
-        <Route
-          path="/produtos"
-          element={
-            <RotaProtegida>
-              <Produtos />
-            </RotaProtegida>
-          }
-        />
-
-        <Route
-          path="/fornecedores"
-          element={
-            <RotaProtegida>
-              <Fornecedor />
-            </RotaProtegida>
-          }
-        />
-
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/dashboard" element={<RotaProtegida><Dashboard /></RotaProtegida>} />
+        <Route path="/bip" element={<RotaProtegida><ScanBip /></RotaProtegida>} />
+        <Route path="/produtos" element={<RotaProtegida><Produtos /></RotaProtegida>} />
+        <Route path="/fornecedores" element={<RotaProtegida><Fornecedor /></RotaProtegida>} />
+        <Route path="/movimentacoes" element={<RotaProtegida><Movimentacoes /></RotaProtegida>} />
+        <Route path="/empresa" element={<RotaProtegida><Empresa /></RotaProtegida>} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

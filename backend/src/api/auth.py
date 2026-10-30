@@ -1,88 +1,109 @@
+import logging
 import os
-import requests
 
-from fastapi import APIRouter, HTTPException, Depends, Body
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from firebase_admin import auth
-from model.usuario import Usuario
+import requests
+from fastapi import APIRouter, Body, HTTPException
+from sqlalchemy.exc import SQLAlchemyError
+
+from plugins.database import Session
+from schemas.usuario import UsuarioDB
+
+logger = logging.getLogger(__name__)
 
 
 class Auth:
     def __init__(self):
         self.router = APIRouter()
         self.api_key = os.getenv("FIREBASE_API_KEY")
-        self.security = HTTPBearer()
 
-        self.router.post("/registro")(self.registro_usuario)
         self.router.post("/login")(self.login)
         self.router.post("/esqueci-senha")(self.esqueci_senha)
- 
-    def registro_usuario(self, usuario: Usuario):
-        try:
-            novo_usuario = auth.create_user(email=usuario.email, password=usuario.password)
-
-            return {
-                "uid": novo_usuario.uid,
-                "email": novo_usuario.email,
-                "mensagem": "Usuário cadastrado com sucesso"
-            }
-
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Não foi possível criar o usuário: {e}")
 
     def login(self, email: str = Body(...), password: str = Body(...)):
         if not self.api_key:
-            raise HTTPException(status_code=500, detail="FIREBASE_API_KEY não configurada")
+            raise HTTPException(status_code=500, detail="FIREBASE_API_KEY não configurada.")
 
-        url = (f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={self.api_key}")
-
-        dados = {
-            "email": email,
-            "password": password,
-            "returnSecureToken": True
-        }
-
+        url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={self.api_key}"
         try:
-            resposta = requests.post(url, json=dados, timeout=10)
+            resposta = requests.post(
+                url,
+                json={"email": email, "password": password, "returnSecureToken": True},
+                timeout=10,
+            )
         except requests.RequestException:
-            raise HTTPException(status_code=503, detail="Não foi possível conectar ao Firebase")
+            logger.exception("Falha de rede/TLS ao autenticar no Firebase.")
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Não foi possível conectar ao Firebase. Se a rede usa inspeção HTTPS, "
+                    "configure REQUESTS_CA_BUNDLE com o certificado raiz PEM da organização."
+                ),
+            )
 
         if resposta.status_code != 200:
-            raise HTTPException(status_code=401, detail="Email ou senha inválidos")
+            raise HTTPException(status_code=401, detail="Email ou senha inválidos.")
 
         resultado = resposta.json()
+        db = Session()
+        try:
+            usuario_db = db.query(UsuarioDB).filter(
+                UsuarioDB.firebase_uid == resultado["localId"]
+            ).first()
+        except SQLAlchemyError:
+            logger.exception("Falha ao consultar o usuário após o login Firebase.")
+            raise HTTPException(status_code=500, detail="Erro ao consultar vínculo da conta.")
+        finally:
+            db.close()
+
+        if usuario_db is None:
+            raise HTTPException(
+                status_code=403,
+                detail="Conta sem vínculo no SEIA. Solicite acesso ao administrador do sistema.",
+            )
+        if usuario_db.role == "admin_seia":
+            return {
+                "token": resultado["idToken"],
+                "uid": resultado["localId"],
+                "email": resultado["email"],
+                "nome": usuario_db.nome,
+                "role": "admin_seia",
+                "empresa_configurada": True,
+            }
 
         return {
             "token": resultado["idToken"],
             "uid": resultado["localId"],
-            "email": resultado["email"]
+            "email": resultado["email"],
+            "nome": usuario_db.nome,
+            "role": usuario_db.role,
+            "empresa_configurada": True,
         }
-
-    def verificar_token(self, credenciais: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
-        try:
-            usuario = auth.verify_id_token(credenciais.credentials)
-            return usuario
-
-        except Exception:
-            raise HTTPException(status_code=401, detail="Token inválido ou expirado")
 
     def esqueci_senha(self, email: str = Body(...)):
         if not self.api_key:
-            raise HTTPException(status_code=500, detail="FIREBASE_API_KEY não configurada")
+            raise HTTPException(status_code=500, detail="FIREBASE_API_KEY não configurada.")
 
-        url = (f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={self.api_key}")
-
-        dados = {
-            "requestType": "PASSWORD_RESET",
-            "email": email
-        }
-
+        url = f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={self.api_key}"
         try:
-            resposta = requests.post(url, json=dados, timeout=10)
+            resposta = requests.post(
+                url,
+                json={"requestType": "PASSWORD_RESET", "email": email},
+                timeout=10,
+            )
         except requests.RequestException:
-            raise HTTPException(status_code=503, detail="Não foi possível conectar ao Firebase")
+            logger.exception("Falha de rede/TLS ao solicitar redefinição no Firebase.")
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Não foi possível conectar ao Firebase. Se a rede usa inspeção HTTPS, "
+                    "configure REQUESTS_CA_BUNDLE com o certificado raiz PEM da organização."
+                ),
+            )
 
         if resposta.status_code != 200:
-            raise HTTPException(status_code=400, detail="Não foi possível enviar o email de redefinição de senha")
+            raise HTTPException(
+                status_code=400,
+                detail="Não foi possível enviar o email de redefinição de senha.",
+            )
 
-        return {"mensagem": "Email de redefinição de senha enviado com sucesso"}
+        return {"mensagem": "Email de redefinição de senha enviado com sucesso."}

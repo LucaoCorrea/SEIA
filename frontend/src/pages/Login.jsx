@@ -16,8 +16,8 @@ export default function Login() {
     setCarregando(true);
 
     try {
-      await login(email, password);
-      navigate("/dashboard");
+      const resultado = await login(email, password);
+      navigate(resultado.role === "admin_seia" ? "/admin/empresas" : "/dashboard");
     } catch (error) {
       setErro(error.message);
     } finally {
@@ -119,10 +119,6 @@ export default function Login() {
             {carregando ? "Entrando..." : "Entrar no sistema"}
           </button>
 
-          <p className="auth-switch">
-            Ainda não tem uma conta?{" "}
-            <Link to="/registro">Criar conta</Link>
-          </p>
         </form>
       </section>
     </div>
