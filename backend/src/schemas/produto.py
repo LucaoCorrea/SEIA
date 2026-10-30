@@ -18,4 +18,5 @@ class Produto(Base):
     unidade_medida = Column(String(30), nullable=False, default="un")
     estoque_minimo = Column(Float, nullable=False, default=0)
     custo = Column(Float, nullable=False, default=0)
+    fornecedor_id = Column(Integer, nullable=False)
     ativo = Column(Boolean, nullable=False, default=True)

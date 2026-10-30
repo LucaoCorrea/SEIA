@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from api.auth import Auth
+from api.fornecedores import RotasFornecedor
 from schemas.produto import Produto 
 from plugins.database import Base, engine
 from api.produtos import RotasProduto
@@ -26,6 +27,7 @@ class Main:
 
         self.app.include_router(auth_api.router)
         self.app.include_router(produto_api.router)
+        self.app.include_router(RotasFornecedor().router)  # Adicione esta linha para incluir as rotas do fornecedor
 
     def run(self):
         uvicorn.run(self.app, host="127.0.0.1", port=8000)

@@ -14,6 +14,7 @@ class Produto(BaseModel):
     unidade_medida: str = Field(default="un", max_length=30)
     estoque_minimo: float = 0
     custo: float = 0
+    fornecedor_id: int
     ativo: bool = True
 
 
