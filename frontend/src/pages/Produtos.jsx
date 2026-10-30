@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import "./Produto.css";
 
@@ -15,6 +16,7 @@ const produtoInicial = {
   unidade_medida: "un",
   estoque_minimo: "0",
   custo: "0",
+  fornecedor_id: "",
   ativo: true
 };
 
@@ -51,13 +53,17 @@ function formatarQuantidade(valor) {
 }
 
 export default function Produtos() {
+  const location = useLocation();
   const [produtos, setProdutos] = useState([]);
   const [produtosFiltrados, setProdutosFiltrados] = useState([]);
+  const [fornecedores, setFornecedores] = useState([]);
   const [formulario, setFormulario] = useState(produtoInicial);
   const [busca, setBusca] = useState("");
   const [produtoId, setProdutoId] = useState("");
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
+  const [produtoEmEdicao, setProdutoEmEdicao] = useState(null);
   const [carregando, setCarregando] = useState(true);
+  const [carregandoFornecedores, setCarregandoFornecedores] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [consultando, setConsultando] = useState(false);
   const [erro, setErro] = useState("");
@@ -80,9 +86,42 @@ export default function Produtos() {
     }
   }, []);
 
+  const carregarFornecedores = useCallback(async () => {
+    setCarregandoFornecedores(true);
+
+    try {
+      const dados = await requisicaoAPI(`${API_URL}/listar-fornecedores`);
+      setFornecedores(Array.isArray(dados) ? dados : []);
+    } catch (error) {
+      setErro(error.message || "Não foi possível carregar os fornecedores.");
+    } finally {
+      setCarregandoFornecedores(false);
+    }
+  }, []);
+
   useEffect(() => {
     carregarProdutos();
   }, [carregarProdutos]);
+
+  useEffect(() => {
+    carregarFornecedores();
+  }, [carregarFornecedores]);
+
+  useEffect(() => {
+    const codigoBarras = location.state?.codigo_barras;
+    const id = location.state?.produtoId;
+
+    if (codigoBarras) {
+      setFormulario((atual) => ({ ...atual, codigo_barras: codigoBarras }));
+    }
+
+    if (id) {
+      setProdutoId(String(id));
+      requisicaoAPI(`${API_URL}/buscar/${encodeURIComponent(id)}`)
+        .then(setProdutoSelecionado)
+        .catch((error) => setErro(error.message || "Não foi possível consultar o produto."));
+    }
+  }, [location.state]);
 
   const estatisticas = useMemo(() => ({
     total: produtos.length,
@@ -109,6 +148,12 @@ export default function Produtos() {
     evento.preventDefault();
     setErro("");
     setSucesso("");
+
+    if (!formulario.fornecedor_id) {
+      setErro("Selecione um fornecedor para o produto.");
+      return;
+    }
+
     setSalvando(true);
 
     const dados = {
@@ -117,6 +162,7 @@ export default function Produtos() {
       quantidade: Number(formulario.quantidade),
       estoque_minimo: Number(formulario.estoque_minimo),
       custo: Number(formulario.custo),
+      fornecedor_id: Number(formulario.fornecedor_id),
       descricao: formulario.descricao.trim() || null,
       imagem: formulario.imagem.trim() || null,
       codigo_barras: formulario.codigo_barras.trim() || null,
@@ -124,17 +170,27 @@ export default function Produtos() {
     };
 
     try {
-      await requisicaoAPI(`${API_URL}/produtos`, {
-        method: "POST",
+      await requisicaoAPI(
+        produtoEmEdicao === null
+          ? `${API_URL}/produtos`
+          : `${API_URL}/atualizar/${produtoEmEdicao}`,
+        {
+        method: produtoEmEdicao === null ? "POST" : "PUT",
         body: JSON.stringify(dados)
-      });
+        }
+      );
 
       setFormulario({ ...produtoInicial });
+      setProdutoEmEdicao(null);
       setBusca("");
-      setSucesso("Produto cadastrado com sucesso.");
+      setSucesso(
+        produtoEmEdicao === null
+          ? "Produto cadastrado com sucesso."
+          : "Produto atualizado com sucesso."
+      );
       await carregarProdutos();
     } catch (error) {
-      setErro(error.message || "Não foi possível cadastrar o produto.");
+      setErro(error.message || "Não foi possível salvar o produto.");
     } finally {
       setSalvando(false);
     }
@@ -175,6 +231,53 @@ export default function Produtos() {
     setErro("");
   }
 
+  function editarProduto(produto) {
+    setFormulario({
+      ...produtoInicial,
+      nome: produto.nome || "",
+      preco: String(produto.preco ?? ""),
+      quantidade: String(produto.quantidade ?? 0),
+      descricao: produto.descricao || "",
+      imagem: produto.imagem || "",
+      codigo_barras: produto.codigo_barras || "",
+      tipo_classificacao: produto.tipo_classificacao || "",
+      unidade_medida: produto.unidade_medida || "un",
+      estoque_minimo: String(produto.estoque_minimo ?? 0),
+      custo: String(produto.custo ?? 0),
+      fornecedor_id: String(produto.fornecedor_id ?? ""),
+      ativo: produto.ativo ?? true,
+    });
+    setProdutoEmEdicao(produto.id);
+    setProdutoSelecionado(null);
+  }
+
+  function cancelarEdicao() {
+    setFormulario({ ...produtoInicial });
+    setProdutoEmEdicao(null);
+  }
+
+  async function deletarProduto(produto) {
+    if (!window.confirm(`Deseja excluir o produto "${produto.nome}"?`)) return;
+
+    setErro("");
+    setSucesso("");
+    setSalvando(true);
+
+    try {
+      await requisicaoAPI(`${API_URL}/deletar/${produto.id}`, {
+        method: "DELETE"
+      });
+
+      if (produtoEmEdicao === produto.id) cancelarEdicao();
+      setSucesso("Produto excluído com sucesso.");
+      await carregarProdutos();
+    } catch (error) {
+      setErro(error.message || "Não foi possível excluir o produto.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
   async function buscarProduto(evento) {
     evento.preventDefault();
 
@@ -190,7 +293,7 @@ export default function Produtos() {
 
     try {
       const produto = await requisicaoAPI(
-        `${API_URL}/${encodeURIComponent(produtoId.trim())}`
+        `${API_URL}/buscar/${encodeURIComponent(produtoId.trim())}`
       );
 
       setProdutoSelecionado(produto);
@@ -287,8 +390,12 @@ export default function Produtos() {
             <div className="produto-panel-heading">
               <div>
                 <span className="produto-section-label">CATÁLOGO</span>
-                <h2>Cadastrar produto</h2>
-                <p>Preencha os dados do novo item.</p>
+                <h2>{produtoEmEdicao === null ? "Cadastrar produto" : "Editar produto"}</h2>
+                <p>
+                  {produtoEmEdicao === null
+                    ? "Preencha os dados do novo item."
+                    : `Atualize os dados do produto #${produtoEmEdicao}.`}
+                </p>
               </div>
               <span className="produto-heading-icon">＋</span>
             </div>
@@ -401,6 +508,34 @@ export default function Produtos() {
               </div>
 
               <div className="produto-form-group">
+                <label htmlFor="fornecedor_id">Fornecedor *</label>
+                <select
+                  id="fornecedor_id"
+                  name="fornecedor_id"
+                  value={formulario.fornecedor_id}
+                  onChange={atualizarCampo}
+                  required
+                  disabled={carregandoFornecedores || fornecedores.length === 0}
+                >
+                  <option value="">
+                    {carregandoFornecedores
+                      ? "Carregando fornecedores..."
+                      : fornecedores.length === 0
+                        ? "Nenhum fornecedor cadastrado"
+                        : "Selecione um fornecedor"}
+                  </option>
+                  {fornecedores.map((fornecedor) => (
+                    <option key={fornecedor.id} value={fornecedor.id}>
+                      {fornecedor.nome}
+                    </option>
+                  ))}
+                </select>
+                {fornecedores.length === 0 && !carregandoFornecedores && (
+                  <Link to="/fornecedores">Cadastrar fornecedor</Link>
+                )}
+              </div>
+
+              <div className="produto-form-group">
                 <label htmlFor="codigo_barras">Código de barras</label>
                 <input
                   id="codigo_barras"
@@ -456,8 +591,22 @@ export default function Produtos() {
                 type="submit"
                 disabled={salvando}
               >
-                {salvando ? "Cadastrando..." : "＋ Cadastrar produto"}
+                {salvando
+                  ? "Salvando..."
+                  : produtoEmEdicao === null
+                    ? "＋ Cadastrar produto"
+                    : "Salvar alterações"}
               </button>
+              {produtoEmEdicao !== null && (
+                <button
+                  className="produto-btn produto-btn-secondary"
+                  type="button"
+                  onClick={cancelarEdicao}
+                  disabled={salvando}
+                >
+                  Cancelar edição
+                </button>
+              )}
             </form>
           </section>
 
@@ -578,6 +727,25 @@ export default function Produtos() {
                                 title="Ver detalhes"
                               >
                                 ↗
+                              </button>
+                              <button
+                                className="produto-view-btn"
+                                type="button"
+                                onClick={() => editarProduto(produto)}
+                                aria-label={`Editar ${produto.nome}`}
+                                title="Editar produto"
+                              >
+                                ✎
+                              </button>
+                              <button
+                                className="produto-view-btn"
+                                type="button"
+                                onClick={() => deletarProduto(produto)}
+                                aria-label={`Excluir ${produto.nome}`}
+                                title="Excluir produto"
+                                disabled={salvando}
+                              >
+                                ×
                               </button>
                             </td>
                           </tr>

@@ -15,6 +15,7 @@ export default function Sidebar() {
   const menus = [
     { caminho: "/dashboard", nome: "Visão geral", icone: "▦" },
     { caminho: "/produtos", nome: "Produtos", icone: "▤" },
+    { caminho: "/fornecedores", nome: "Fornecedores", icone: "♧" },
     { caminho: "/bip", nome: "Bip de produtos", icone: "▥" },
     { caminho: "/entradas", nome: "Entradas", icone: "↗" },
     { caminho: "/saidas", nome: "Saídas", icone: "↘" },

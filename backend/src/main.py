@@ -2,12 +2,26 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+from sqlalchemy import inspect, text
 
 from api.auth import Auth
 from api.fornecedores import RotasFornecedor
 from schemas.produto import Produto 
 from plugins.database import Base, engine
 from api.produtos import RotasProduto
+
+
+def garantir_coluna_cnpj_fornecedor():
+    with engine.begin() as connection:
+        colunas = {
+            coluna["name"]
+            for coluna in inspect(connection).get_columns("fornecedores")
+        }
+
+        if "cnpj" not in colunas:
+            connection.execute(
+                text("ALTER TABLE fornecedores ADD COLUMN cnpj VARCHAR(18)")
+            )
 
 
 class Main:
@@ -21,6 +35,7 @@ class Main:
         self.app.add_middleware(CORSMiddleware, allow_origins=origens_permitidas, allow_credentials=False, allow_methods=["*"], allow_headers=["*"],)
 
         Base.metadata.create_all(bind=engine)
+        garantir_coluna_cnpj_fornecedor()
 
         auth_api = Auth()
         produto_api = RotasProduto()

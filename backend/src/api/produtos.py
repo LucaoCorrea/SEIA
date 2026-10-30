@@ -13,13 +13,13 @@ class RotasProduto:
         self.router = APIRouter()
         self.scan_bip = ScanBip()
 
+        self.router.get("/buscar-produto-nome", response_model=list[ProdutoResponse])(self.buscar_produto_nome)
         self.router.post("/bip-barcode")(self.produto_com_barcode)
         self.router.post("/produtos", status_code=status.HTTP_201_CREATED, response_model=ProdutoResponse)(self.cadastrar_produto)
         self.router.get("/listar-produtos", response_model=list[ProdutoResponse])(self.listar_produtos)
-        self.router.get("/{produto_id}", response_model=ProdutoResponse)(self.buscar_produto)
-        self.router.get("/buscar-produto-nome", response_model=list[ProdutoResponse])(self.buscar_produto_nome)
-        self.router.put("/{produto_id}", response_model=ProdutoResponse)(self.atualizar_produto)
-        self.router.delete("/{produto_id}", status_code=status.HTTP_204_NO_CONTENT)(self.deletar_produto)
+        self.router.get("/buscar/{produto_id}", response_model=ProdutoResponse)(self.buscar_produto)
+        self.router.put("/atualizar/{produto_id}", response_model=ProdutoResponse)(self.atualizar_produto)
+        self.router.delete("/deletar/{produto_id}", status_code=status.HTTP_204_NO_CONTENT)(self.deletar_produto)
 
     async def produto_com_barcode(self, file: UploadFile = File(...)):
         try:

@@ -33,7 +33,7 @@ export default function Cadastro() {
       const resultado = await cadastrar(email, password);
       setSucesso(resultado.mensagem || "Cadastro realizado!");
 
-      setTimeout(() => navigate("/"), 1200);
+      setTimeout(() => navigate("/login"), 1200);
     } catch (error) {
       setErro(error.message);
     } finally {
@@ -112,7 +112,7 @@ export default function Cadastro() {
           </button>
 
           <p className="auth-switch">
-            Já tem uma conta? <Link to="/">Fazer login</Link>
+            Já tem uma conta? <Link to="/login">Fazer login</Link>
           </p>
         </form>
       </section>

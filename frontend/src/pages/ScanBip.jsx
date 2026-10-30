@@ -32,26 +32,22 @@ export default function ScanBip() {
     setCarregando(true);
 
     try {
-      const resposta = await fetch(
-        `${API_URL}/api/produtos/codigo-barras/${encodeURIComponent(codigoLimpo)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        }
-      );
-
-      if (resposta.status === 404) {
-        setResultado({ codigo_barras: codigoLimpo, encontrado: false });
-        return;
-      }
+      const resposta = await fetch(`${API_URL}/listar-produtos`);
+      const produtos = await resposta.json().catch(() => []);
 
       if (!resposta.ok) {
         throw new Error("Não foi possível consultar o produto.");
       }
 
-      const produto = await resposta.json();
-      setResultado({ ...produto, encontrado: true });
+      const produto = (Array.isArray(produtos) ? produtos : []).find(
+        (item) => String(item.codigo_barras || "").trim() === codigoLimpo
+      );
+
+      setResultado(
+        produto
+          ? { ...produto, encontrado: true }
+          : { codigo_barras: codigoLimpo, encontrado: false }
+      );
     } catch (erroConsulta) {
       setErro(erroConsulta.message || "Erro ao consultar o estoque.");
     } finally {
@@ -71,17 +67,14 @@ export default function ScanBip() {
 
     try {
       const formulario = new FormData();
-      formulario.append("imagem", arquivo);
+      formulario.append("file", arquivo);
 
-      const resposta = await fetch(`${API_URL}/api/scann-bip/escanear`, {
+      const resposta = await fetch(`${API_URL}/bip-barcode`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        },
         body: formulario
       });
 
-      const dados = await resposta.json();
+      const dados = await resposta.json().catch(() => ({}));
 
       if (!resposta.ok) {
         throw new Error(dados.detail || "Não foi possível processar a imagem.");
@@ -236,7 +229,11 @@ export default function ScanBip() {
 
                 <button
                   className="register-button"
-                  onClick={() => navigate(`/produtos/novo?codigo_barras=${encodeURIComponent(resultado.codigo_barras)}`)}
+                  onClick={() =>
+                    navigate("/produtos", {
+                      state: { codigo_barras: resultado.codigo_barras }
+                    })
+                  }
                 >
                   + Cadastrar produto
                 </button>
@@ -283,7 +280,11 @@ export default function ScanBip() {
 
                 <button
                   className="register-button"
-                  onClick={() => navigate(`/produtos/${resultado.id}`)}
+                  onClick={() =>
+                    navigate("/produtos", {
+                      state: { produtoId: resultado.id }
+                    })
+                  }
                 >
                   Ver produto
                 </button>

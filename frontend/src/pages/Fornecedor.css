@@ -1,0 +1,41 @@
+.fornecedores-content-grid {
+	display: grid;
+	grid-template-columns: minmax(280px, 0.75fr) minmax(0, 1.4fr);
+	align-items: start;
+	gap: 22px;
+}
+
+.fornecedores-list-panel {
+	padding-top: 24px;
+}
+
+.fornecedores-list-panel > .produto-panel-heading {
+	padding: 0 24px;
+}
+
+.fornecedor-actions {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+}
+
+.fornecedor-delete-btn {
+	color: #a53c37;
+}
+
+.fornecedor-delete-btn:hover:not(:disabled) {
+	border-color: #e6b6b3;
+	background: #fff2f1;
+}
+
+@media (max-width: 900px) {
+	.fornecedores-content-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 560px) {
+	.fornecedores-list-panel > .produto-panel-heading {
+		padding: 0 18px;
+	}
+}

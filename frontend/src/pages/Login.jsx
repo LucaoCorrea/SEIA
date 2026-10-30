@@ -121,7 +121,7 @@ export default function Login() {
 
           <p className="auth-switch">
             Ainda não tem uma conta?{" "}
-            <Link to="/cadastro">Criar conta</Link>
+            <Link to="/registro">Criar conta</Link>
           </p>
         </form>
       </section>

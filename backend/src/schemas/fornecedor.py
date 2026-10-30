@@ -11,4 +11,5 @@ class Fornecedor(Base):
     nome = Column(String(150), nullable=False)
     email = Column(String(150), nullable=False, unique=True)
     telefone = Column(String(20), nullable=True)
+    cnpj = Column(String(18), nullable=True)
     ativo = Column(Boolean, nullable=False, default=True)

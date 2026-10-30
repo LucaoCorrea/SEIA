@@ -7,6 +7,7 @@ import EsqueciSenha from "./pages/EsqueciSenha";
 import Dashboard from "./pages/Dashboard";
 import ScanBip from "./pages/ScanBip";
 import Produtos from "./pages/Produtos";
+import Fornecedor from "./pages/Fornecedor";
 
 function RotaProtegida({ children }) {
   const token = localStorage.getItem("token");
@@ -34,6 +35,24 @@ export default function App() {
         />
 
         <Route
+          path="/login"
+          element={
+            <RotaPublica>
+              <Login />
+            </RotaPublica>
+          }
+        />
+
+        <Route
+          path="/registro"
+          element={
+            <RotaPublica>
+              <Cadastro />
+            </RotaPublica>
+          }
+        />
+
+        <Route
           path="/esqueci-senha"
           element={
             <RotaPublica>
@@ -42,14 +61,7 @@ export default function App() {
           }
         />
 
-        <Route
-          path="/cadastro"
-          element={
-            <RotaProtegida>
-              <Cadastro />
-            </RotaProtegida>
-          }
-        />
+        <Route path="/cadastro" element={<Navigate to="/registro" replace />} />
 
         <Route
           path="/dashboard"
@@ -74,6 +86,15 @@ export default function App() {
           element={
             <RotaProtegida>
               <Produtos />
+            </RotaProtegida>
+          }
+        />
+
+        <Route
+          path="/fornecedores"
+          element={
+            <RotaProtegida>
+              <Fornecedor />
             </RotaProtegida>
           }
         />
