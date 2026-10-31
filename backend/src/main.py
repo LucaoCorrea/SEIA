@@ -15,12 +15,15 @@ from api.auth import Auth
 from api.admin import RotasAdminSeia
 from api.avisos import RotasAviso
 from api.empresas import RotasEmpresa
+from api.fazendas import RotasFazenda
+from api.perfil_usuario import RotasPerfilUsuario
 from api.fornecedores import RotasFornecedor
 from api.movimentacoes import RotasMovimentacao
 from api.produtos import RotasProduto
 from plugins.database import Base, engine
 from schemas.empresa import Empresa
 from schemas.fornecedor import Fornecedor
+from schemas.fazenda import Fazenda, Lote
 from schemas.movimentacao import Movimentacao
 from schemas.produto import Produto
 from schemas.usuario import UsuarioDB
@@ -227,6 +230,53 @@ def migrar_referencia_produto_movimentacoes():
             connection.commit()
 
 
+def migrar_destino_lote_movimentacoes():
+    if "movimentacoes" not in inspect(engine).get_table_names():
+        return
+    colunas = {
+        coluna["name"]
+        for coluna in inspect(engine).get_columns("movimentacoes")
+    }
+    if "destino_lote_id" in colunas:
+        return
+
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "ALTER TABLE movimentacoes ADD COLUMN destino_lote_id "
+                "INTEGER REFERENCES lotes(id)"
+            )
+        )
+
+
+def migrar_codigo_fazenda():
+    if "fazendas" not in inspect(engine).get_table_names():
+        return
+    colunas = {
+        coluna["name"]
+        for coluna in inspect(engine).get_columns("fazendas")
+    }
+    with engine.begin() as connection:
+        if "codigo" not in colunas:
+            connection.execute(text("ALTER TABLE fazendas ADD COLUMN codigo INTEGER"))
+        connection.execute(
+            text("UPDATE fazendas SET codigo = id WHERE codigo IS NULL")
+        )
+        connection.execute(
+            text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS uq_fazendas_empresa_codigo "
+                "ON fazendas (empresa_id, codigo)"
+            )
+        )
+
+
+def migrar_custo_produtos():
+    if "produtos" not in inspect(engine).get_table_names():
+        return
+    with engine.begin() as connection:
+        connection.execute(text("UPDATE produtos SET custo = quantidade * preco"))
+
+
 class Main:
     def __init__(self):
         load_dotenv()
@@ -252,6 +302,9 @@ class Main:
         if "fornecedores" in tabelas_existentes:
             migrar_unicidade_por_empresa("fornecedores", Fornecedor, "email")
         Base.metadata.create_all(bind=engine)
+        migrar_custo_produtos()
+        migrar_codigo_fazenda()
+        migrar_destino_lote_movimentacoes()
         migrar_referencia_produto_movimentacoes()
         if os.getenv("SEIA_SEED_DEMO", "").strip().casefold() == "true":
             if popular_dados_demo():
@@ -261,6 +314,8 @@ class Main:
         self.app.include_router(RotasAdminSeia().router)
         self.app.include_router(RotasProduto().router)
         self.app.include_router(RotasMovimentacao().router)
+        self.app.include_router(RotasFazenda().router)
+        self.app.include_router(RotasPerfilUsuario().router)
         self.app.include_router(RotasAviso().router)
         self.app.include_router(RotasEmpresa().router)
         self.app.include_router(RotasFornecedor().router)

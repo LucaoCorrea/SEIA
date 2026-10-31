@@ -18,6 +18,7 @@ from plugins.tenant import usuario_atual
 from schemas.aviso import Aviso
 from schemas.empresa import Empresa
 from schemas.fornecedor import Fornecedor
+from schemas.fazenda import Fazenda
 from schemas.movimentacao import Movimentacao
 from schemas.produto import Produto
 from schemas.usuario import UsuarioDB
@@ -194,7 +195,7 @@ class RotasEmpresa:
                 .filter(modelo.empresa_id == empresa.id)
                 .first()
                 is not None
-                for modelo in (Produto, Fornecedor, Movimentacao, Aviso)
+                for modelo in (Produto, Fornecedor, Fazenda, Movimentacao, Aviso)
             )
             if possui_dados:
                 raise HTTPException(

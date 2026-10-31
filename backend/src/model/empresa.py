@@ -50,6 +50,18 @@ class UsuarioCadastroEmpresa(BaseModel):
         return valor.strip() if isinstance(valor, str) else valor
 
 
+class UsuarioAtualizacaoEmpresa(BaseModel):
+    nome: str = Field(..., min_length=2, max_length=150)
+    email: EmailStr
+    telefone: str | None = Field(default=None, max_length=20)
+    role: Literal["admin", "gerente", "funcionario"]
+
+    @field_validator("nome", "email", "telefone", mode="before")
+    @classmethod
+    def normalizar_texto(cls, valor):
+        return valor.strip() if isinstance(valor, str) else valor
+
+
 class UsuarioEmpresaResponse(BaseModel):
     id: int
     nome: str

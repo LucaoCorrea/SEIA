@@ -19,6 +19,7 @@ Para criar dados demonstrativos em um banco local vazio, defina `SEIA_SEED_DEMO=
 - Administradores globais `admin_seia`, autenticados pelo Firebase e registrados no banco, podem cadastrar e administrar empresas pelo painel `/admin/empresas`. O cadastro cria também a conta Firebase do primeiro gerente da empresa.
 - Ao selecionar **Acessar** em uma empresa, o admin global entra no contexto dela sem trocar de conta. A API recebe o ID selecionado e mantém os mesmos endpoints e CRUDs limitados à empresa ativa. A autorização global é validada pelo backend.
 - O administrador e o gerente da empresa podem criar contas de funcionários pela página **Empresa**. Esse fluxo é autenticado; não existe cadastro público de usuários ou empresas.
+- Na página **Empresa**, administradores e gerentes podem consultar, editar nome/e-mail/telefone e excluir usuários vinculados. Administradores também podem alterar o cargo entre gerente e funcionário. A edição de nome/e-mail atualiza a conta Firebase; não é possível excluir a própria conta.
 - Login e recuperação de senha são as únicas rotas públicas. A autorização das rotas administrativas é validada pelo backend, independentemente do papel armazenado no navegador.
 - Gerentes podem atualizar os dados da empresa, administrar avisos e criar funcionários. O administrador global pode criar outros gerentes e excluir uma empresa somente se ela ainda não tiver dados ou histórico.
 - A exclusão da empresa é bloqueada enquanto houver produtos, fornecedores, movimentações ou avisos, para preservar o histórico.
@@ -28,6 +29,8 @@ Se a conexão com Firebase falhar por inspeção HTTPS/certificado corporativo, 
 ## Estoque e mural
 
 - A página **Movimentações** registra entradas, saídas e ajustes para o saldo desejado, sempre identificando usuário, motivo e horário.
+- A página **Fazendas e lotes** permite cadastrar fazendas da empresa com código inteiro e nome, e seus lotes com talhão e área em hectares. Em toda saída é obrigatório informar a fazenda e o lote de destino; o destino também aparece no histórico. Lotes usados em movimentações não podem ser excluídos.
+- O custo do produto é calculado automaticamente como quantidade em estoque × preço e atualizado ao registrar movimentações ou alterar o preço.
 - Saídas que deixariam o estoque negativo são rejeitadas. O saldo inicial informado ao cadastrar um produto também é registrado como uma entrada.
 - **Visão geral** reúne os avisos da empresa e as movimentações recentes com o usuário responsável. Administradores e gerentes podem criar, editar e remover avisos.
 
@@ -35,7 +38,8 @@ Se a conexão com Firebase falhar por inspeção HTTPS/certificado corporativo, 
 
 - Públicos: `POST /login` e `POST /esqueci-senha`.
 - Administração global: `GET/POST /admin/empresas`, `PUT/DELETE /admin/empresas/{empresa_id}`.
-- Empresa autenticada: `GET/PUT/DELETE /empresas/me`, `POST /empresas/usuarios`.
-- `GET/POST /movimentacoes`.
+- Empresa autenticada: `GET/PUT/DELETE /empresas/me`, `POST /empresas/usuarios`, `PUT/DELETE /empresas/usuarios/{usuario_id}`.
+- `GET/POST /fazendas`, `POST /fazendas/{fazenda_id}/lotes`, `GET /lotes`, `DELETE /fazendas/{fazenda_id}`, `DELETE /lotes/{lote_id}`.
+- `GET/POST /movimentacoes` (saídas exigem `destino_lote_id`).
 - `GET/POST /avisos`, `PUT/DELETE /avisos/{aviso_id}`.
 - Produtos e fornecedores usam os endpoints existentes e agora exigem autenticação; os resultados são limitados à empresa autenticada.

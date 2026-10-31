@@ -106,6 +106,21 @@
   color: #748078;
 }
 
+.empresa-user-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.empresa-user-actions .produto-btn {
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.empresa-user-actions .empresa-delete-button {
+  margin-top: 0;
+}
+
 .empresa-convite {
   display: flex;
   flex-wrap: wrap;

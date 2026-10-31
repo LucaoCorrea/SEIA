@@ -146,7 +146,7 @@ export default function Dashboard() {
     .sort((a, b) => Number(b.id) - Number(a.id))
     .slice(0, 5);
   const valorEstoque = produtos.reduce(
-    (total, produto) => total + Number(produto.custo || 0) * Number(produto.quantidade || 0),
+    (total, produto) => total + Number(produto.custo || 0),
     0
   );
 
@@ -219,7 +219,6 @@ export default function Dashboard() {
               ▥ Ler código de barras
             </button>
           </div>
-          <div className="banner-symbol">✳</div>
         </section>
 
         <section className="section-heading">

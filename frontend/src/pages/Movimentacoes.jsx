@@ -6,6 +6,8 @@ import "./Movimentacoes.css";
 const formularioInicial = {
   produto_id: "",
   tipo: "entrada",
+  destino_fazenda_id: "",
+  destino_lote_id: "",
   quantidade: "",
   motivo: ""
 };
@@ -23,6 +25,7 @@ function formatarData(valor) {
 
 export default function Movimentacoes() {
   const [produtos, setProdutos] = useState([]);
+  const [fazendas, setFazendas] = useState([]);
   const [movimentacoes, setMovimentacoes] = useState([]);
   const [formulario, setFormulario] = useState(formularioInicial);
   const [carregando, setCarregando] = useState(true);
@@ -33,15 +36,17 @@ export default function Movimentacoes() {
   const buscarDados = useCallback(async () => {
     return Promise.all([
       requisicaoAPI(`${API_URL}/listar-produtos`),
-      requisicaoAPI(`${API_URL}/movimentacoes?limite=200`)
+      requisicaoAPI(`${API_URL}/movimentacoes?limite=200`),
+      requisicaoAPI(`${API_URL}/fazendas`)
     ]);
   }, []);
 
   const carregarDados = useCallback(async () => {
     try {
-      const [listaProdutos, listaMovimentacoes] = await buscarDados();
+      const [listaProdutos, listaMovimentacoes, listaFazendas] = await buscarDados();
       setProdutos(listaProdutos);
       setMovimentacoes(listaMovimentacoes);
+      setFazendas(listaFazendas);
       setErro("");
     } catch (error) {
       setErro(error.message || "Não foi possível carregar o estoque.");
@@ -55,10 +60,11 @@ export default function Movimentacoes() {
 
     async function carregarInicial() {
       try {
-        const [listaProdutos, listaMovimentacoes] = await buscarDados();
+        const [listaProdutos, listaMovimentacoes, listaFazendas] = await buscarDados();
         if (!ativo) return;
         setProdutos(listaProdutos);
         setMovimentacoes(listaMovimentacoes);
+        setFazendas(listaFazendas);
         setErro("");
       } catch (error) {
         if (ativo) setErro(error.message || "Não foi possível carregar o estoque.");
@@ -74,7 +80,16 @@ export default function Movimentacoes() {
   }, [buscarDados]);
 
   function atualizarCampo(evento) {
-    setFormulario((atual) => ({ ...atual, [evento.target.name]: evento.target.value }));
+    const { name, value } = evento.target;
+    setFormulario((atual) => {
+      if (name === "tipo" && value !== "saida") {
+        return { ...atual, tipo: value, destino_fazenda_id: "", destino_lote_id: "" };
+      }
+      if (name === "destino_fazenda_id") {
+        return { ...atual, destino_fazenda_id: value, destino_lote_id: "" };
+      }
+      return { ...atual, [name]: value };
+    });
   }
 
   async function registrarMovimentacao(evento) {
@@ -87,8 +102,11 @@ export default function Movimentacoes() {
       const resultado = await requisicaoAPI(`${API_URL}/movimentacoes`, {
         method: "POST",
         body: JSON.stringify({
-          ...formulario,
           produto_id: Number(formulario.produto_id),
+          tipo: formulario.tipo,
+          ...(formulario.tipo === "saida"
+            ? { destino_lote_id: Number(formulario.destino_lote_id) }
+            : {}),
           quantidade: Number(formulario.quantidade),
           motivo: formulario.motivo.trim()
         })
@@ -152,6 +170,50 @@ export default function Movimentacoes() {
                 <option value="ajuste">Ajuste de saldo</option>
               </select>
             </div>
+            {formulario.tipo === "saida" && (
+              <>
+                <div className="produto-form-group">
+                  <label htmlFor="mov-destino-fazenda">Fazenda de destino</label>
+                  <select
+                    id="mov-destino-fazenda"
+                    name="destino_fazenda_id"
+                    value={formulario.destino_fazenda_id}
+                    onChange={atualizarCampo}
+                    required
+                  >
+                    <option value="">Selecione uma fazenda</option>
+                    {fazendas.map((fazenda) => (
+                      <option key={fazenda.id} value={fazenda.id}>{fazenda.codigo} · {fazenda.nome}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="produto-form-group">
+                  <label htmlFor="mov-destino-lote">Lote / talhão de destino</label>
+                  <select
+                    id="mov-destino-lote"
+                    name="destino_lote_id"
+                    value={formulario.destino_lote_id}
+                    onChange={atualizarCampo}
+                    disabled={!formulario.destino_fazenda_id}
+                    required
+                  >
+                    <option value="">Selecione um lote</option>
+                    {fazendas
+                      .find((fazenda) => String(fazenda.id) === formulario.destino_fazenda_id)
+                      ?.lotes.map((lote) => (
+                        <option key={lote.id} value={lote.id}>
+                          {lote.nome} · talhão {lote.talhao} · {formatarQuantidade(lote.area_hectares)} ha
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                {!fazendas.length && (
+                  <p className="movimentacao-help">
+                    Cadastre uma fazenda e um lote antes de registrar uma saída.
+                  </p>
+                )}
+              </>
+            )}
             <div className="produto-form-group">
               <label htmlFor="mov-quantidade">
                 {formulario.tipo === "ajuste" ? "Novo saldo" : "Quantidade"}
@@ -180,7 +242,7 @@ export default function Movimentacoes() {
                 placeholder="Ex.: recebimento de compra, venda ou conferência"
               />
             </div>
-            <button className="produto-btn produto-btn-primary" type="submit" disabled={salvando || !produtos.length}>
+            <button className="produto-btn produto-btn-primary" type="submit" disabled={salvando || !produtos.length || (formulario.tipo === "saida" && !formulario.destino_lote_id)}>
               {salvando ? "Registrando..." : "Registrar movimentação"}
             </button>
             {!produtos.length && !carregando && <p className="movimentacao-help">Cadastre um produto antes de movimentar o estoque.</p>}
@@ -207,6 +269,7 @@ export default function Movimentacoes() {
                     <th>Data</th>
                     <th>Produto</th>
                     <th>Movimento</th>
+                    <th>Destino</th>
                     <th>Quantidade / saldo</th>
                     <th>Responsável</th>
                     <th>Motivo</th>
@@ -218,6 +281,11 @@ export default function Movimentacoes() {
                       <td>{formatarData(item.criado_em)}</td>
                       <td><strong>{item.produto_nome}</strong></td>
                       <td><span className={`movimentacao-badge ${item.tipo}`}>{item.tipo}</span></td>
+                      <td>
+                        {item.destino_fazenda
+                          ? `${item.destino_fazenda} · ${item.destino_lote} · talhão ${item.destino_talhao}`
+                          : "—"}
+                      </td>
                       <td>
                         {item.tipo === "ajuste"
                           ? `${formatarQuantidade(item.saldo_anterior)} → ${formatarQuantidade(item.saldo_posterior)}`

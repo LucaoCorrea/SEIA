@@ -10,6 +10,7 @@ class Movimentacao(Base):
     id = Column(Integer, primary_key=True, index=True)
     empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False, index=True)
     produto_id = Column(Integer, ForeignKey("produtos.id"), nullable=False, index=True)
+    destino_lote_id = Column(Integer, ForeignKey("lotes.id"), nullable=True, index=True)
     usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False, index=True)
     tipo = Column(String(12), nullable=False)
     quantidade = Column(Float, nullable=False)

@@ -17,6 +17,7 @@ export default function Sidebar() {
     { caminho: "/dashboard", nome: "Visão geral", icone: "▦" },
     { caminho: "/produtos", nome: "Produtos", icone: "▤" },
     { caminho: "/fornecedores", nome: "Fornecedores", icone: "♧" },
+    { caminho: "/fazendas", nome: "Fazendas e lotes", icone: "⌂" },
     { caminho: "/bip", nome: "Bip de produtos", icone: "▥" },
     { caminho: "/movimentacoes", nome: "Movimentações", icone: "↔" },
     { caminho: "/relatorios", nome: "Relatórios", icone: "▥" }

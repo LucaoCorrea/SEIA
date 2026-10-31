@@ -1,0 +1,126 @@
+.fazendas-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fazendas-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 20px;
+}
+
+.fazendas-form-grid .produto-form-panel,
+.fazendas-list-panel {
+  padding: 24px;
+}
+
+.fazendas-search {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.fazendas-search > label {
+  color: #203b2b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.fazendas-search-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fazendas-search-controls input {
+  width: min(100%, 520px);
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #dfe7e1;
+  border-radius: 8px;
+  color: #203b2b;
+  font: inherit;
+}
+
+.fazendas-search-controls button {
+  border: 0;
+  background: transparent;
+  color: #197447;
+  cursor: pointer;
+  font: inherit;
+}
+
+.fazendas-search > p {
+  margin: 0;
+  color: #748078;
+  font-size: 12px;
+}
+
+.fazendas-form-grid .produto-form {
+  max-width: 100%;
+}
+
+.fazendas-form-grid select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #dfe7e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #203b2b;
+  font: inherit;
+}
+
+.fazendas-list {
+  display: grid;
+  gap: 14px;
+}
+
+.fazenda-card {
+  padding: 18px;
+  border: 1px solid #edf1ed;
+  border-radius: 10px;
+}
+
+.fazenda-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.fazenda-card-heading h3 {
+  margin: 0;
+  color: #203b2b;
+}
+
+.fazenda-delete-button {
+  border: 0;
+  background: transparent;
+  color: #a23c2b;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.fazenda-sem-lotes {
+  margin: 0;
+  color: #748078;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .fazendas-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .fazendas-form-grid .produto-form-panel,
+  .fazendas-list-panel {
+    padding: 18px 14px;
+  }
+}

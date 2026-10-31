@@ -9,6 +9,13 @@ export default function Empresa() {
   const [empresa, setEmpresa] = useState(null);
   const [formulario, setFormulario] = useState({ nome: "", cnpj: "", cep: "" });
   const [novoUsuario, setNovoUsuario] = useState({ nome: "", email: "", senha: "", telefone: "", role: "funcionario" });
+  const [usuarioEmEdicao, setUsuarioEmEdicao] = useState(null);
+  const [formularioUsuarioEdicao, setFormularioUsuarioEdicao] = useState({
+    nome: "",
+    email: "",
+    telefone: "",
+    role: "funcionario"
+  });
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
@@ -119,6 +126,83 @@ export default function Empresa() {
     }
   }
 
+  function iniciarEdicaoUsuario(usuario) {
+    setUsuarioEmEdicao(usuario.id);
+    setFormularioUsuarioEdicao({
+      nome: usuario.nome || "",
+      email: usuario.email || "",
+      telefone: usuario.telefone || "",
+      role: usuario.role || "funcionario"
+    });
+    setErro("");
+    setSucesso("");
+  }
+
+  function cancelarEdicaoUsuario() {
+    setUsuarioEmEdicao(null);
+    setFormularioUsuarioEdicao({
+      nome: "",
+      email: "",
+      telefone: "",
+      role: "funcionario"
+    });
+  }
+
+  async function salvarEdicaoUsuario(evento, usuarioId) {
+    evento.preventDefault();
+    setErro("");
+    setSucesso("");
+    setSalvando(true);
+    try {
+      const usuarioAnterior = empresa.usuarios.find((usuario) => usuario.id === usuarioId);
+      const atualizado = await requisicaoAPI(`${API_URL}/empresas/usuarios/${usuarioId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          nome: formularioUsuarioEdicao.nome.trim(),
+          email: formularioUsuarioEdicao.email.trim(),
+          telefone: formularioUsuarioEdicao.telefone.trim() || null,
+          role: formularioUsuarioEdicao.role
+        })
+      });
+      setEmpresa((atual) => ({
+        ...atual,
+        usuarios: atual.usuarios.map((usuario) =>
+          usuario.id === atualizado.id ? atualizado : usuario
+        )
+      }));
+      if (usuarioAnterior?.email === localStorage.getItem("email")) {
+        localStorage.setItem("email", atualizado.email);
+        localStorage.setItem("nome", atualizado.nome);
+      }
+      cancelarEdicaoUsuario();
+      setSucesso("Dados e cargo do usuário atualizados.");
+    } catch (error) {
+      setErro(error.message || "Não foi possível atualizar o usuário.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  async function excluirUsuario(usuario) {
+    if (!window.confirm(`Excluir o usuário "${usuario.nome}"? Ele perderá o acesso ao SEIA.`)) return;
+    setErro("");
+    setSucesso("");
+    setSalvando(true);
+    try {
+      await requisicaoAPI(`${API_URL}/empresas/usuarios/${usuario.id}`, { method: "DELETE" });
+      setEmpresa((atual) => ({
+        ...atual,
+        usuarios: atual.usuarios.filter((item) => item.id !== usuario.id)
+      }));
+      if (usuarioEmEdicao === usuario.id) cancelarEdicaoUsuario();
+      setSucesso("Usuário excluído e acesso ao SEIA removido.");
+    } catch (error) {
+      setErro(error.message || "Não foi possível excluir o usuário.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
   async function excluirEmpresa() {
     if (!window.confirm("Excluir a empresa? Esta ação só é permitida quando não há dados de estoque ou histórico.")) return;
     setErro("");
@@ -138,6 +222,7 @@ export default function Empresa() {
   }
 
   const podeEditar = empresa && ["admin", "gerente", "admin_seia"].includes(empresa.role);
+  const podeAlterarCargo = empresa && ["admin", "admin_seia"].includes(empresa.role);
 
   return (
     <div className="dashboard produtos-page-layout">
@@ -235,15 +320,94 @@ export default function Empresa() {
               ) : (
                 <div className="movimentacao-table-wrap">
                   <table className="movimentacao-table">
-                    <thead><tr><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Perfil</th></tr></thead>
+                    <thead><tr><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Perfil</th><th>Ações</th></tr></thead>
                     <tbody>
                       {empresa.usuarios.map((usuario) => (
-                        <tr key={usuario.id}>
-                          <td><strong>{usuario.nome}</strong></td>
-                          <td>{usuario.email}</td>
-                          <td>{usuario.telefone || "—"}</td>
-                          <td>{usuario.role}</td>
-                        </tr>
+                        usuarioEmEdicao === usuario.id ? (
+                          <tr key={usuario.id}>
+                            <td>
+                              <input
+                                aria-label="Nome do usuário"
+                                value={formularioUsuarioEdicao.nome}
+                                onChange={(evento) => setFormularioUsuarioEdicao((atual) => ({ ...atual, nome: evento.target.value }))}
+                                minLength={2}
+                                maxLength={150}
+                                required
+                              />
+                            </td>
+                            <td>
+                              <input
+                                aria-label="E-mail do usuário"
+                                type="email"
+                                value={formularioUsuarioEdicao.email}
+                                onChange={(evento) => setFormularioUsuarioEdicao((atual) => ({ ...atual, email: evento.target.value }))}
+                                required
+                              />
+                            </td>
+                            <td>
+                              <input
+                                aria-label="Telefone do usuário"
+                                value={formularioUsuarioEdicao.telefone}
+                                onChange={(evento) => setFormularioUsuarioEdicao((atual) => ({ ...atual, telefone: evento.target.value }))}
+                                maxLength={20}
+                              />
+                            </td>
+                            <td>
+                              {podeAlterarCargo ? (
+                                <select
+                                  aria-label="Cargo do usuário"
+                                  value={formularioUsuarioEdicao.role}
+                                  onChange={(evento) => setFormularioUsuarioEdicao((atual) => ({ ...atual, role: evento.target.value }))}
+                                >
+                                  {usuario.role === "admin" && <option value="admin">Administrador</option>}
+                                  <option value="gerente">Gerente</option>
+                                  <option value="funcionario">Funcionário</option>
+                                </select>
+                              ) : (
+                                usuario.role
+                              )}
+                            </td>
+                            <td>
+                              <form onSubmit={(evento) => salvarEdicaoUsuario(evento, usuario.id)}>
+                                <button className="produto-btn produto-btn-primary" type="submit" disabled={salvando}>
+                                  Salvar
+                                </button>
+                                <button className="produto-btn produto-btn-secondary" type="button" onClick={cancelarEdicaoUsuario} disabled={salvando}>
+                                  Cancelar
+                                </button>
+                              </form>
+                            </td>
+                          </tr>
+                        ) : (
+                          <tr key={usuario.id}>
+                            <td><strong>{usuario.nome}</strong></td>
+                            <td>{usuario.email}</td>
+                            <td>{usuario.telefone || "—"}</td>
+                            <td>{usuario.role}</td>
+                            <td>
+                              {podeEditar && (
+                                <div className="empresa-user-actions">
+                                  <button
+                                    className="produto-btn produto-btn-secondary"
+                                    type="button"
+                                    onClick={() => iniciarEdicaoUsuario(usuario)}
+                                    disabled={salvando}
+                                  >
+                                    Editar
+                                  </button>
+                                  <button
+                                    className="produto-btn empresa-delete-button"
+                                    type="button"
+                                    onClick={() => excluirUsuario(usuario)}
+                                    disabled={salvando}
+                                  >
+                                    Excluir
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )
                       ))}
                     </tbody>
                   </table>

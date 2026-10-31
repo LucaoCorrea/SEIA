@@ -14,7 +14,6 @@ const produtoInicial = {
   tipo_classificacao: "",
   unidade_medida: "un",
   estoque_minimo: "0",
-  custo: "0",
   fornecedor_id: "",
   ativo: true
 };
@@ -143,7 +142,7 @@ export default function Produtos() {
       (produto) => Number(produto.quantidade || 0) <= Number(produto.estoque_minimo || 0)
     ).length,
     valorEstoque: produtos.reduce(
-      (total, produto) => total + Number(produto.custo || 0) * Number(produto.quantidade || 0),
+      (total, produto) => total + Number(produto.custo || 0),
       0
     )
   }), [produtos]);
@@ -174,7 +173,6 @@ export default function Produtos() {
       preco: Number(formulario.preco),
       quantidade: Number(formulario.quantidade),
       estoque_minimo: Number(formulario.estoque_minimo),
-      custo: Number(formulario.custo),
       fornecedor_id: Number(formulario.fornecedor_id),
       descricao: formulario.descricao.trim() || null,
       imagem: formulario.imagem.trim() || null,
@@ -256,7 +254,6 @@ export default function Produtos() {
       tipo_classificacao: produto.tipo_classificacao || "",
       unidade_medida: produto.unidade_medida || "un",
       estoque_minimo: String(produto.estoque_minimo ?? 0),
-      custo: String(produto.custo ?? 0),
       fornecedor_id: String(produto.fornecedor_id ?? ""),
       ativo: produto.ativo ?? true,
     });
@@ -396,7 +393,7 @@ export default function Produtos() {
             <div>
               <span>Valor de custo em estoque</span>
               <strong>{formatarMoeda(estatisticas.valorEstoque)}</strong>
-              <small>Custo × quantidade</small>
+              <small>Quantidade × preço</small>
             </div>
           </article>
         </section>
@@ -413,7 +410,7 @@ export default function Produtos() {
                     : `Atualize os dados do produto #${produtoEmEdicao}.`}
                 </p>
               </div>
-              <span className="produto-heading-icon">＋</span>
+              
             </div>
 
             <form className="produto-form" onSubmit={cadastrarProduto}>
@@ -424,7 +421,7 @@ export default function Produtos() {
                   name="nome"
                   value={formulario.nome}
                   onChange={atualizarCampo}
-                  placeholder="Ex.: Arroz tipo 1 - 5 kg"
+                  placeholder="Ex.:  Calcário Puro..."
                   maxLength={150}
                   required
                 />
@@ -447,15 +444,14 @@ export default function Produtos() {
                 </div>
 
                 <div className="produto-form-group">
-                  <label htmlFor="custo">Custo (R$)</label>
+                  <label htmlFor="custo-calculado">Custo (quantidade × preço)</label>
                   <input
-                    id="custo"
-                    name="custo"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formulario.custo}
-                    onChange={atualizarCampo}
+                    id="custo-calculado"
+                    type="text"
+                    value={formatarMoeda(
+                      Number(formulario.quantidade || 0) * Number(formulario.preco || 0)
+                    )}
+                    readOnly
                   />
                 </div>
               </div>
@@ -510,7 +506,7 @@ export default function Produtos() {
                     <option value="g">Grama (g)</option>
                     <option value="l">Litro (L)</option>
                     <option value="ml">Mililitro (ml)</option>
-                    <option value="pacote">Pacote</option>
+                    <option value="pacote">Tonelada (t)</option>
                     <option value="caixa">Caixa</option>
                     <option value="dúzia">Dúzia</option>
                   </select>
@@ -523,7 +519,7 @@ export default function Produtos() {
                     name="tipo_classificacao"
                     value={formulario.tipo_classificacao}
                     onChange={atualizarCampo}
-                    placeholder="Ex.: Alimentos"
+                    placeholder="Ex.: Corretivo, Fertilizante..."
                     maxLength={100}
                   />
                 </div>
@@ -795,7 +791,7 @@ export default function Produtos() {
                   <h2>Buscar por ID</h2>
                   <p>Consulte os dados de um produto específico na API.</p>
                 </div>
-                <span className="produto-heading-icon">⌕</span>
+                
               </div>
 
               <form className="produto-lookup-form" onSubmit={buscarProduto}>

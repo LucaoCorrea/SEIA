@@ -67,8 +67,9 @@ class RotasProduto:
                 raise HTTPException(status_code=404, detail="Fornecedor não encontrado nesta empresa.")
 
             novo_produto = ProdutoDB(
-                **dados.model_dump(),
+                **dados.model_dump(exclude={"custo"}),
                 empresa_id=usuario["empresa_id"],
+                custo=float(dados.quantidade) * float(dados.preco),
             )
             db.add(novo_produto)
             db.flush()
@@ -190,8 +191,9 @@ class RotasProduto:
                 raise HTTPException(status_code=404, detail="Fornecedor não encontrado nesta empresa.")
 
             for campo, valor in dados_atualizados.items():
-                if campo != "quantidade":
+                if campo not in ("quantidade", "custo"):
                     setattr(produto, campo, valor)
+            produto.custo = float(produto.quantidade) * float(produto.preco)
             db.commit()
             db.refresh(produto)
             return produto

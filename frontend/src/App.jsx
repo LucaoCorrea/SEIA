@@ -9,6 +9,7 @@ import Fornecedor from "./pages/Fornecedor";
 import Movimentacoes from "./pages/Movimentacoes";
 import Empresa from "./pages/Empresa";
 import AdminEmpresas from "./pages/AdminEmpresas";
+import Fazendas from "./pages/Fazendas";
 
 function RotaProtegida({ children }) {
   const token = localStorage.getItem("token");
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="/bip" element={<RotaProtegida><ScanBip /></RotaProtegida>} />
         <Route path="/produtos" element={<RotaProtegida><Produtos /></RotaProtegida>} />
         <Route path="/fornecedores" element={<RotaProtegida><Fornecedor /></RotaProtegida>} />
+        <Route path="/fazendas" element={<RotaProtegida><Fazendas /></RotaProtegida>} />
         <Route path="/movimentacoes" element={<RotaProtegida><Movimentacoes /></RotaProtegida>} />
         <Route path="/empresa" element={<RotaProtegida><Empresa /></RotaProtegida>} />
         <Route path="*" element={<Navigate to="/login" replace />} />
