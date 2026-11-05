@@ -113,7 +113,7 @@ class RotasMovimentacao:
                 saldo_posterior = saldo_anterior + dados.quantidade
                 quantidade_registrada = dados.quantidade
             elif dados.tipo == "saida":
-                saldo_posterior = saldo_anterior - dados.quantidade
+                saldo_posterior = saldo_anterior - float(dados.quantidade)
                 quantidade_registrada = dados.quantidade
                 if saldo_posterior < 0:
                     raise HTTPException(
