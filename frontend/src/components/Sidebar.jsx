@@ -15,6 +15,7 @@ export default function Sidebar() {
   const adminSeia = localStorage.getItem("role") === "admin_seia";
   const menus = [
     { caminho: "/dashboard", nome: "Visão geral", icone: "▦" },
+    { caminho: "/dashboard-executivo", nome: "Dashboard executivo", icone: "▥" },
     { caminho: "/produtos", nome: "Produtos", icone: "▤" },
     { caminho: "/fornecedores", nome: "Fornecedores", icone: "♧" },
     { caminho: "/fazendas", nome: "Fazendas e lotes", icone: "⌂" },

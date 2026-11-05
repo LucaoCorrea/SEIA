@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import EsqueciSenha from "./pages/EsqueciSenha";
 import Dashboard from "./pages/Dashboard";
+import PainelExecutivo from "./pages/PainelExecutivo";
 import ScanBip from "./pages/ScanBip";
 import Produtos from "./pages/Produtos";
 import Fornecedor from "./pages/Fornecedor";
@@ -51,6 +52,7 @@ export default function App() {
           element={<RotaAdminSeia><AdminEmpresas /></RotaAdminSeia>}
         />
         <Route path="/dashboard" element={<RotaProtegida><Dashboard /></RotaProtegida>} />
+        <Route path="/dashboard-executivo" element={<RotaProtegida><PainelExecutivo /></RotaProtegida>} />
         <Route path="/bip" element={<RotaProtegida><ScanBip /></RotaProtegida>} />
         <Route path="/produtos" element={<RotaProtegida><Produtos /></RotaProtegida>} />
         <Route path="/fornecedores" element={<RotaProtegida><Fornecedor /></RotaProtegida>} />
@@ -62,3 +64,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+

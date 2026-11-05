@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+
 import { API_URL, requisicaoAPI } from "../services/api";
 
 async function buscarLista(endpoint, entidade) {
@@ -38,6 +39,7 @@ export default function Dashboard() {
   const [erroProdutos, setErroProdutos] = useState("");
   const [erroFornecedores, setErroFornecedores] = useState("");
   const [erroFeed, setErroFeed] = useState("");
+
   const [mensagemAviso, setMensagemAviso] = useState("");
 
   useEffect(() => {
@@ -76,7 +78,11 @@ export default function Dashboard() {
       if (resultadoAvisos.status === "fulfilled") setAvisos(resultadoAvisos.value);
       else errosFeed.push(resultadoAvisos.reason?.message || "Erro ao carregar avisos.");
       if (resultadoMovimentacoes.status === "fulfilled") setMovimentacoes(resultadoMovimentacoes.value);
-      else errosFeed.push(resultadoMovimentacoes.reason?.message || "Erro ao carregar movimentações.");
+      else {
+        const mensagem = resultadoMovimentacoes.reason?.message || "Erro ao carregar movimentações.";
+
+        errosFeed.push(mensagem);
+      }
       if (resultadoEmpresa.status === "fulfilled") setEmpresa(resultadoEmpresa.value);
       else errosFeed.push(resultadoEmpresa.reason?.message || "Erro ao carregar a empresa.");
       setErroFeed(errosFeed.join(" "));
@@ -241,6 +247,8 @@ export default function Dashboard() {
             </article>
           ))}
         </section>
+
+
 
         <section className="content-grid">
           <article className="panel" id="produtos">
@@ -421,3 +429,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+
