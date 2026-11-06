@@ -4,7 +4,9 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+from model.barcode import ConsultaCodigoBarras
 from model.produto import Produto as ProdutoSchema, ProdutoResponse
+from plugins.barcode_gs1 import interpretar_codigo_barras
 from plugins.database import Session
 from plugins.scann_bip import ScanBip
 from plugins.tenant import usuario_atual
@@ -21,6 +23,7 @@ class RotasProduto:
         self.scan_bip = ScanBip()
 
         self.router.get("/buscar-produto-nome", response_model=list[ProdutoResponse])(self.buscar_produto_nome)
+        self.router.post("/bip/consultar")(self.consultar_codigo_barras)
         self.router.post("/bip-barcode")(self.produto_com_barcode)
         self.router.post(
             "/produtos",
@@ -31,6 +34,42 @@ class RotasProduto:
         self.router.get("/buscar/{produto_id}", response_model=ProdutoResponse)(self.buscar_produto)
         self.router.put("/atualizar/{produto_id}", response_model=ProdutoResponse)(self.atualizar_produto)
         self.router.delete("/deletar/{produto_id}", status_code=status.HTTP_204_NO_CONTENT)(self.deletar_produto)
+
+    def consultar_codigo_barras(
+        self,
+        dados: ConsultaCodigoBarras,
+        usuario: dict = Depends(usuario_atual),
+    ):
+        try:
+            leitura = interpretar_codigo_barras(dados.codigo_barras)
+        except ValueError as erro:
+            raise HTTPException(status_code=400, detail=str(erro))
+
+        db = Session()
+        try:
+            produto = None
+            for codigo in leitura["codigos_consulta"]:
+                produto = db.query(ProdutoDB).filter(
+                    ProdutoDB.empresa_id == usuario["empresa_id"],
+                    ProdutoDB.codigo_barras == codigo,
+                ).first()
+                if produto:
+                    break
+
+            leitura.pop("codigos_consulta")
+            return {
+                **leitura,
+                "encontrado": produto is not None,
+                "produto": (
+                    ProdutoResponse.model_validate(produto).model_dump()
+                    if produto is not None else None
+                ),
+            }
+        except SQLAlchemyError:
+            logger.exception("Falha ao consultar produto por código de barras.")
+            raise HTTPException(status_code=500, detail="Erro ao consultar produto por código de barras.")
+        finally:
+            db.close()
 
     async def produto_com_barcode(
         self,

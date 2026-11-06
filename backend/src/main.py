@@ -20,6 +20,7 @@ from api.perfil_usuario import RotasPerfilUsuario
 from api.fornecedores import RotasFornecedor
 from api.movimentacoes import RotasMovimentacao
 from api.produtos import RotasProduto
+from api.relatorios import RotasRelatorio
 from plugins.database import Base, engine
 from schemas.empresa import Empresa
 from schemas.fornecedor import Fornecedor
@@ -313,6 +314,7 @@ class Main:
         self.app.include_router(Auth().router)
         self.app.include_router(RotasAdminSeia().router)
         self.app.include_router(RotasProduto().router)
+        self.app.include_router(RotasRelatorio().router)
         self.app.include_router(RotasMovimentacao().router)
         self.app.include_router(RotasFazenda().router)
         self.app.include_router(RotasPerfilUsuario().router)

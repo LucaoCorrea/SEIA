@@ -14,6 +14,19 @@ async function tratarResposta(resposta, mensagemErro) {
   return dados;
 }
 
+function cabecalhosAutenticados(headersIniciais = {}) {
+  const headers = new Headers(headersIniciais);
+  const token = localStorage.getItem("token");
+  const empresaId = localStorage.getItem("empresa_id");
+
+  if (localStorage.getItem("role") === "admin_seia" && empresaId) {
+    headers.set("X-SEIA-Empresa-ID", empresaId);
+  }
+
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  return headers;
+}
+
 export async function login(email, password) {
   const resposta = await fetch(`${API_URL}/login`, {
     method: "POST",
@@ -31,15 +44,7 @@ export async function login(email, password) {
 }
 
 export async function requisicaoAPI(url, options = {}) {
-  const headers = new Headers(options.headers || {});
-  const token = localStorage.getItem("token");
-  const empresaId = localStorage.getItem("empresa_id");
-
-  if (localStorage.getItem("role") === "admin_seia" && empresaId) {
-    headers.set("X-SEIA-Empresa-ID", empresaId);
-  }
-
-  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const headers = cabecalhosAutenticados(options.headers);
   if (options.body && !(options.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
@@ -47,6 +52,24 @@ export async function requisicaoAPI(url, options = {}) {
   const resposta = await fetch(url, { ...options, headers });
   if (resposta.status === 204) return null;
   return tratarResposta(resposta, `Erro na requisição (${resposta.status}).`);
+}
+
+export async function baixarArquivo(url, nomeArquivo) {
+  const resposta = await fetch(url, { headers: cabecalhosAutenticados() });
+  if (!resposta.ok) {
+    await tratarResposta(resposta, `Erro ao baixar arquivo (${resposta.status}).`);
+    return;
+  }
+
+  const arquivo = await resposta.blob();
+  const urlArquivo = URL.createObjectURL(arquivo);
+  const link = document.createElement("a");
+  link.href = urlArquivo;
+  link.download = nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(urlArquivo);
 }
 
 export function logout() {

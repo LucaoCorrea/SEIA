@@ -1,6 +1,7 @@
 # backend/src/plugins/scann_bip.py
 import cv2
 import numpy as np
+import zxingcpp
 
 class ScanBip:
     def __init__(self):
@@ -13,6 +14,11 @@ class ScanBip:
 
         if frame is None:
             return None
+
+        resultados = zxingcpp.read_barcodes(frame)
+        for resultado in resultados:
+            if resultado.valid and resultado.text:
+                return resultado.text
 
         retval, decoded_info, decoded_type, _ = self.detector.detectAndDecode(frame)
 

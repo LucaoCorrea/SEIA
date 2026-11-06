@@ -513,6 +513,7 @@ a {
 }
 
 .sidebar {
+  --sidebar-icon-size: clamp(16px, 1.15vw, 18px);
   position: fixed;
   inset: 0 auto 0 0;
   z-index: 2;
@@ -584,6 +585,13 @@ a {
   width: 20px;
   font-size: 17px;
   text-align: center;
+}
+
+.sidebar-icon {
+  display: block;
+  flex: 0 0 var(--sidebar-icon-size);
+  width: var(--sidebar-icon-size);
+  height: var(--sidebar-icon-size);
 }
 
 .menu-item:hover,
@@ -979,6 +987,7 @@ a {
   }
 
   .sidebar {
+    --sidebar-icon-size: clamp(16px, 4vw, 18px);
     position: static;
     width: 100%;
     padding: 16px;
@@ -986,27 +995,52 @@ a {
     border-bottom: 1px solid #e7ece6;
   }
 
-  .sidebar .menu-label,
-  .sidebar-bottom {
+  .sidebar .menu-label {
     display: none;
   }
 
   .sidebar nav {
     display: flex;
     gap: 5px;
-    margin-top: 16px;
+    margin-top: 12px;
     overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
   }
 
   .menu-item {
     flex-shrink: 0;
     width: auto;
-    padding: 10px;
+    min-height: 42px;
+    padding: 9px 10px;
+    font-size: 12px;
+  }
+
+  .sidebar-bottom {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .sidebar-bottom::-webkit-scrollbar,
+  .sidebar nav::-webkit-scrollbar {
+    height: 3px;
+  }
+
+  .sidebar-bottom .menu-item {
+    margin: 0;
+  }
+
+  .sidebar-bottom .logout {
+    margin-left: auto;
   }
 
   .dashboard-main {
     margin-left: 0;
-    padding: 24px 16px;
+    padding: 22px 16px;
   }
 
   .topbar {
@@ -1014,16 +1048,19 @@ a {
   }
 
   .profile {
-    max-width: 150px;
+    max-width: min(42vw, 190px);
   }
 
   .profile small {
-    max-width: 100px;
+    max-width: 32vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .welcome-banner {
     min-height: 160px;
-    padding: 24px;
+    padding: 20px;
   }
 
   .welcome-banner h2 {
@@ -1057,5 +1094,32 @@ a {
 @media (max-width: 380px) {
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile {
+    max-width: 100%;
+  }
+
+  .profile > div:last-child {
+    min-width: 0;
+  }
+
+  .profile small {
+    max-width: 70vw;
+  }
+
+  .dashboard-main {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .sidebar {
+    padding-right: 10px;
+    padding-left: 10px;
   }
 }
