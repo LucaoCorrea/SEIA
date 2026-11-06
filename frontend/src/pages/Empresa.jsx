@@ -6,15 +6,27 @@ import "./Movimentacoes.css";
 
 export default function Empresa() {
   const navigate = useNavigate();
+  const opcoesPerfil = [
+    { value: "diretor", label: "Diretor" },
+    { value: "gerente", label: "Gerente" },
+    { value: "supervisor", label: "Supervisor" },
+    { value: "lider", label: "Líder" },
+    { value: "auxiliar", label: "Auxiliar" },
+    { value: "operador", label: "Operador" }
+  ];
+  const formatarPerfil = (valor) => {
+    const perfil = opcoesPerfil.find((item) => item.value === valor);
+    return perfil ? perfil.label : (valor === "admin" ? "Diretor" : valor === "funcionario" ? "Operador" : valor || "Operador");
+  };
   const [empresa, setEmpresa] = useState(null);
   const [formulario, setFormulario] = useState({ nome: "", cnpj: "", cep: "" });
-  const [novoUsuario, setNovoUsuario] = useState({ nome: "", email: "", senha: "", telefone: "", role: "funcionario" });
+  const [novoUsuario, setNovoUsuario] = useState({ nome: "", email: "", senha: "", telefone: "", role: "operador" });
   const [usuarioEmEdicao, setUsuarioEmEdicao] = useState(null);
   const [formularioUsuarioEdicao, setFormularioUsuarioEdicao] = useState({
     nome: "",
     email: "",
     telefone: "",
-    role: "funcionario"
+    role: "operador"
   });
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
@@ -117,7 +129,7 @@ export default function Empresa() {
         })
       });
       setEmpresa((atual) => ({ ...atual, usuarios: [...atual.usuarios, usuario] }));
-      setNovoUsuario({ nome: "", email: "", senha: "", telefone: "", role: "funcionario" });
+      setNovoUsuario({ nome: "", email: "", senha: "", telefone: "", role: "operador" });
       setSucesso("Usuário criado. Ele já pode entrar com o e-mail e a senha inicial.");
     } catch (error) {
       setErro(error.message || "Não foi possível criar o usuário.");
@@ -132,7 +144,7 @@ export default function Empresa() {
       nome: usuario.nome || "",
       email: usuario.email || "",
       telefone: usuario.telefone || "",
-      role: usuario.role || "funcionario"
+      role: usuario.role || "operador"
     });
     setErro("");
     setSucesso("");
@@ -144,7 +156,7 @@ export default function Empresa() {
       nome: "",
       email: "",
       telefone: "",
-      role: "funcionario"
+      role: "operador"
     });
   }
 
@@ -221,8 +233,8 @@ export default function Empresa() {
     }
   }
 
-  const podeEditar = empresa && ["admin", "gerente", "admin_seia"].includes(empresa.role);
-  const podeAlterarCargo = empresa && ["admin", "admin_seia"].includes(empresa.role);
+  const podeEditar = empresa && ["admin", "diretor", "gerente", "admin_seia"].includes(empresa.role);
+  const podeAlterarCargo = empresa && ["admin", "diretor", "gerente", "admin_seia"].includes(empresa.role);
 
   return (
     <div className="dashboard produtos-page-layout">
@@ -301,12 +313,13 @@ export default function Empresa() {
                     <label htmlFor="novo-usuario-senha">Senha inicial (mínimo 8 caracteres)</label>
                     <input id="novo-usuario-senha" type="password" value={novoUsuario.senha} onChange={(evento) => setNovoUsuario((atual) => ({ ...atual, senha: evento.target.value }))} required minLength={8} autoComplete="new-password" />
                   </div>
-                  {empresa.role === "admin_seia" && (
+                  {podeEditar && (
                     <div className="produto-form-group">
                       <label htmlFor="novo-usuario-role">Perfil</label>
                       <select id="novo-usuario-role" value={novoUsuario.role} onChange={(evento) => setNovoUsuario((atual) => ({ ...atual, role: evento.target.value }))}>
-                        <option value="gerente">Gerente</option>
-                        <option value="funcionario">Funcionário</option>
+                        {opcoesPerfil.map((perfil) => (
+                          <option key={perfil.value} value={perfil.value}>{perfil.label}</option>
+                        ))}
                       </select>
                     </div>
                   )}
@@ -359,12 +372,12 @@ export default function Empresa() {
                                   value={formularioUsuarioEdicao.role}
                                   onChange={(evento) => setFormularioUsuarioEdicao((atual) => ({ ...atual, role: evento.target.value }))}
                                 >
-                                  {usuario.role === "admin" && <option value="admin">Administrador</option>}
-                                  <option value="gerente">Gerente</option>
-                                  <option value="funcionario">Funcionário</option>
+                                  {opcoesPerfil.map((perfil) => (
+                                    <option key={perfil.value} value={perfil.value}>{perfil.label}</option>
+                                  ))}
                                 </select>
                               ) : (
-                                usuario.role
+                                formatarPerfil(usuario.role)
                               )}
                             </td>
                             <td>
@@ -383,7 +396,7 @@ export default function Empresa() {
                             <td><strong>{usuario.nome}</strong></td>
                             <td>{usuario.email}</td>
                             <td>{usuario.telefone || "—"}</td>
-                            <td>{usuario.role}</td>
+                            <td>{formatarPerfil(usuario.role)}</td>
                             <td>
                               {podeEditar && (
                                 <div className="empresa-user-actions">

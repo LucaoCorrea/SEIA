@@ -189,6 +189,8 @@ export default function Dashboard() {
     return new Date(valor).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
   }
 
+  const podeGerenciarAvisos = ["admin", "diretor", "gerente", "admin_seia"].includes(empresa?.role);
+
   return (
     <div className="dashboard">
       <Sidebar />
@@ -354,7 +356,7 @@ export default function Dashboard() {
                           <small>Publicado por {item.usuario_nome}</small>
                         )}
                       </div>
-                      {item.categoria === "aviso" && ["admin", "gerente"].includes(empresa?.role) && (
+                      {item.categoria === "aviso" && podeGerenciarAvisos && (
                         <div className="dashboard-feed-actions">
                           <button type="button" onClick={() => editarAviso(item)}>Editar</button>
                           <button type="button" onClick={() => excluirAviso(item)}>Excluir</button>
@@ -366,7 +368,7 @@ export default function Dashboard() {
               )}
             </article>
 
-            {["admin", "gerente"].includes(empresa?.role) && (
+            {podeGerenciarAvisos && (
               <article className="panel dashboard-notice-editor">
                 <div className="panel-heading">
                   <h3>{avisoEmEdicao ? "Editar aviso" : "Novo aviso"}</h3>
